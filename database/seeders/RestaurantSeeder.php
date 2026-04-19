@@ -25,10 +25,23 @@ class RestaurantSeeder extends Seeder
         Schema::disableForeignKeyConstraints();
 
         $tables = [
-            'restaurants', 'roles', 'users', 'floors', 'tables', 
-            'categories', 'products', 'ingredients', 'recipes',
-            'stock_movements', 'orders', 'order_items', 'payments', 
-            'cash_sessions', 'customer_tabs', 'cake_orders', 'expenses'
+            'restaurants',
+            'roles',
+            'users',
+            'floors',
+            'tables',
+            'categories',
+            'products',
+            'ingredients',
+            'recipes',
+            'stock_movements',
+            'orders',
+            'order_items',
+            'payments',
+            'cash_sessions',
+            'customer_tabs',
+            'cake_orders',
+            'expenses'
         ];
 
         foreach ($tables as $table) {
@@ -42,7 +55,7 @@ class RestaurantSeeder extends Seeder
         // 1. Création du Restaurant principal
         $restaurant = Restaurant::create([
             'id'       => 1,
-            'name'     => 'Ci Gusta ',
+            'name'     => 'SmartFlow ',
             'slug'     => 'cigusta-omega',
             'address'  => 'Zone Aéroportuaire, Lomé, Togo',
             'phone'    => '+228 90 00 00 00',
@@ -63,16 +76,16 @@ class RestaurantSeeder extends Seeder
         // 2. Création des Rôles
         $roles = [
             ['name' => 'admin',   'display_name' => 'Administrateur', 'permissions' => ['*'], 'is_system' => true],
-            ['name' => 'manager', 'display_name' => 'Manager',        'permissions' => ['orders.*','payments.*','stock.*','reports.*','users.view','cancellations.*'], 'is_system' => true],
-            ['name' => 'cashier', 'display_name' => 'Caissier',       'permissions' => ['orders.view','payments.create','cash_sessions.*'], 'is_system' => true],
-            ['name' => 'waiter',  'display_name' => 'Serveur',        'permissions' => ['orders.create','orders.update','tables.view'], 'is_system' => true],
+            ['name' => 'manager', 'display_name' => 'Manager',        'permissions' => ['orders.*', 'payments.*', 'stock.*', 'reports.*', 'users.view', 'cancellations.*'], 'is_system' => true],
+            ['name' => 'cashier', 'display_name' => 'Caissier',       'permissions' => ['orders.view', 'payments.create', 'cash_sessions.*'], 'is_system' => true],
+            ['name' => 'waiter',  'display_name' => 'Serveur',        'permissions' => ['orders.create', 'orders.update', 'tables.view'], 'is_system' => true],
             ['name' => 'cook',    'display_name' => 'Cuisinier',      'permissions' => ['kitchen.*'], 'is_system' => true],
         ];
 
         $createdRoles = [];
         foreach ($roles as $role) {
             $createdRoles[$role['name']] = Role::create([
-                'restaurant_id' => $restaurant->id, 
+                'restaurant_id' => $restaurant->id,
                 'name' => $role['name'],
                 'display_name' => $role['display_name'],
                 'permissions' => $role['permissions'],
@@ -147,8 +160,8 @@ class RestaurantSeeder extends Seeder
             ],
             'Boissons 🥤' => [
                 ['name' => 'Coca Cola',   'price' => 800,  'emoji' => '🥤'],
-                ['name' => 'Eau Minérale','price' => 500,  'emoji' => '💧'],
-                ['name' => 'Bière Togocel oui oui ','price' => 1200, 'emoji' => '🍺'],
+                ['name' => 'Eau Minérale', 'price' => 500,  'emoji' => '💧'],
+                ['name' => 'Bière Togocel oui oui ', 'price' => 1200, 'emoji' => '🍺'],
             ],
         ];
 

@@ -42,7 +42,16 @@ Route::prefix('auth')->group(function () {
     Route::post('login-pin', [Api\Auth\AuthController::class, 'loginPin']);
 });
 
-Route::get('menu/{restaurantSlug}', [Api\ProductController::class, 'publicMenu']);
+Route::get('menu-default', function(\Illuminate\Http\Request $request) {
+    $restaurant = \App\Models\Restaurant::first();
+    if (!$restaurant) abort(404);
+    return app(\App\Http\Controllers\Api\ProductController::class)->publicMenu($request, $restaurant->slug);
+});
+Route::get('menu/{restaurantSlug}', [\App\Http\Controllers\Api\ProductController::class, 'publicMenu']);
+Route::get('qr/{tableId}', [\App\Http\Controllers\Api\QrCodeController::class, 'generate']);
+Route::get('qr-download', [\App\Http\Controllers\Api\QrCodeController::class, 'downloadPdf']);
+Route::get('menu/{restaurantSlug}/tables', [Api\PublicOrderController::class, 'availableTables']);
+Route::post('menu/{restaurantSlug}/orders', [Api\PublicOrderController::class, 'store']);
 Route::get('orders/{orderId}/ticket', [Api\ReceiptController::class, 'ticket']);
 Route::get('customer-tabs/{tab}/invoice', [Api\CustomerTabController::class, 'invoice']);
 Route::get('receipts/{orderId}/kitchen-ticket', [Api\ReceiptController::class, 'kitchenTicket']);
@@ -212,12 +221,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('{orderId}/send-email', [Api\ReceiptController::class, 'sendEmail']);
     });
 
-    // QR Code
-    Route::prefix('qr')->group(function () {
-        Route::get('{tableId}',           [Api\QrCodeController::class, 'generate']);
-        Route::get('{tableId}/url',       [Api\QrCodeController::class, 'url']);
-        Route::get('floor/{floorId}/all', [Api\QrCodeController::class, 'allForFloor']);
-    });
+    // Paramètres
+    Route::get('settings',        [Api\SettingsController::class, 'show']);
 
     // Paramètres
     Route::get('settings',        [Api\SettingsController::class, 'show']);

@@ -25,7 +25,9 @@ class Restaurant extends Model
 
     public function getLogoUrlAttribute()
     {
-        return $this->logo ? url('api/media/' . $this->logo) : null;
+        if (!$this->logo) return null;
+        if (str_starts_with($this->logo, 'http')) return $this->logo;
+        return url('api/media/' . $this->logo);
     }
 
     public function users() { return $this->hasMany(User::class); }
