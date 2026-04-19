@@ -15,6 +15,26 @@ Route::get('media/{path}', function ($path) {
     return response()->file(\Illuminate\Support\Facades\Storage::disk('public')->path($path));
 })->where('path', '.*');
 
+Route::get('setup-db', function() {
+    try {
+        // Run migrations
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        // Run specific seeder
+        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--class' => 'RestaurantSeeder', '--force' => true]);
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Base de données initialisée avec succès !',
+            'output' => \Illuminate\Support\Facades\Artisan::output()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Erreur lors de l’initialisation : ' . $e->getMessage()
+        ], 500);
+    }
+});
+
 Route::get('test-email', function (\Illuminate\Http\Request $request) {
     $to = $request->query('email', 'sewodakomla@gmail.com');
     try {
