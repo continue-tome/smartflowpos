@@ -22,7 +22,7 @@ class RestaurantSeeder extends Seeder
     public function run(): void
     {
         // Désactiver les clés étrangères pour permettre de vider les tables
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Schema::disableForeignKeyConstraints();
 
         $tables = [
             'restaurants', 'roles', 'users', 'floors', 'tables', 
@@ -37,7 +37,7 @@ class RestaurantSeeder extends Seeder
             }
         }
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints();
 
         // 1. Création du Restaurant principal
         $restaurant = Restaurant::create([
