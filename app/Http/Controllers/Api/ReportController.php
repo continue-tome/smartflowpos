@@ -21,9 +21,11 @@ class ReportController extends Controller
             ->whereBetween('paid_at', [$request->from, $request->to . ' 23:59:59'])
             ->selectRaw('COUNT(*) as orders_count, SUM(total) as revenue, AVG(total) as avg_ticket, SUM(covers) as total_covers, SUM(discount_amount) as total_discounts, SUM(vat_amount) as total_vat')->first();
 
+        $dateField = DB::getDriverName() === 'sqlite' ? 'strftime("%Y-%m-%d", paid_at)' : 'DATE(paid_at)';
+
         $byDay = Order::where('restaurant_id', $restaurantId)->where('status', 'paid')
             ->whereBetween('paid_at', [$request->from, $request->to . ' 23:59:59'])
-            ->selectRaw('DATE(paid_at) as date, COUNT(*) as orders, SUM(total) as revenue')
+            ->selectRaw("$dateField as date, COUNT(*) as orders, SUM(total) as revenue")
             ->groupBy('date')->orderBy('date')->get();
 
         $byMethod = Payment::where(function($q) use ($restaurantId) {
@@ -127,10 +129,12 @@ class ReportController extends Controller
             ->pluck('revenue', 'destination');
 
         // Ventes horaires pour le graphique
+        $hourField = DB::getDriverName() === 'sqlite' ? 'strftime("%H", paid_at)' : 'HOUR(paid_at)';
+
         $hourlySales = Order::where('restaurant_id', $restaurantId)
             ->where('status', 'paid')
             ->whereDate('paid_at', $today)
-            ->selectRaw('HOUR(paid_at) as hour, SUM(total) as revenue')
+            ->selectRaw("$hourField as hour, SUM(total) as revenue")
             ->groupBy('hour')
             ->orderBy('hour')
             ->get()
