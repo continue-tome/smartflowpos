@@ -1,0 +1,29 @@
+name: Deploy API to LWS
+
+on:
+  push:
+    branches:
+      - main # Change en 'master' si c'est ta branche par défaut
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.LWS_HOST }}
+          username: ${{ secrets.LWS_USERNAME }}
+          password: ${{ secrets.LWS_PASSWORD }} # Ou SSH Key
+          port: ${{ secrets.LWS_PORT }}
+          script: |
+            cd /var/www/smartflowpos.com/htdocs/apiv1.smartflowpos.com
+            php artisan down || true
+            git pull origin main
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan optimize
+            php artisan up
