@@ -113,10 +113,10 @@ class EscPosPrintService
             $printer->close();
 
             return ['success' => true];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             $errorMsg = $e->getMessage();
             Log::error("Failed to print to {$destination} printer at {$ip}: " . $errorMsg);
-            return ['success' => false, 'message' => $errorMsg];
+            return ['success' => false, 'message' => 'Erreur: ' . $errorMsg];
         }
     }
 
@@ -230,9 +230,9 @@ class EscPosPrintService
 
             $printer->close();
             return ['success' => true];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Bulk print failed: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Erreur: ' . $e->getMessage()];
+            return ['success' => false, 'message' => 'Erreur de connexion à l\'imprimante: ' . $e->getMessage()];
         }
     }
 
@@ -294,9 +294,9 @@ class EscPosPrintService
             $printer->close();
             
             return ['success' => true];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Cake Print Error: " . $e->getMessage());
-            return ['success' => false, 'message' => $e->getMessage()];
+            return ['success' => false, 'message' => 'Erreur de connexion à l\'imprimante: ' . $e->getMessage()];
         }
     }
 
@@ -361,9 +361,9 @@ class EscPosPrintService
             $printer->close();
             
             return ['success' => true];
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             Log::error("Tab Print Error: " . $e->getMessage());
-            return ['success' => false, 'message' => $e->getMessage()];
+            return ['success' => false, 'message' => 'Erreur de connexion à l\'imprimante: ' . $e->getMessage()];
         }
     }
 

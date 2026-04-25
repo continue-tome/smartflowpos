@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // serveur
             $table->foreignId('cashier_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('order_number')->unique(); // ORD-2024-0001
-            $table->enum('type', ['dine_in', 'takeaway', 'delivery'])->default('dine_in');
+            $table->enum('type', ['dine_in', 'takeaway', 'delivery', 'gozem'])->default('dine_in');
             $table->enum('status', [
                 'open',           // commande ouverte, items en cours
                 'sent_to_kitchen',// envoyée en cuisine

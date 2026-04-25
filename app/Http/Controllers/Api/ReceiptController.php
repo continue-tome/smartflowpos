@@ -190,7 +190,7 @@ class ReceiptController extends Controller
             return response()->json(['message' => 'Impression lancée avec succès.']);
         }
 
-        return response()->json(['message' => $result['message']], 500);
+        return response()->json(['message' => $result['message']], 400);
     }
 
     public function bulkPrintNetwork(Request $request, \App\Services\EscPosPrintService $escPos)
@@ -202,7 +202,7 @@ class ReceiptController extends Controller
             return response()->json(['message' => 'Impressions lancées avec succès.']);
         }
 
-        return response()->json(['message' => $result['message']], 500);
+        return response()->json(['message' => $result['message']], 400);
     }
 
     /** Helper pour renvoyer le PDF A4 direct */

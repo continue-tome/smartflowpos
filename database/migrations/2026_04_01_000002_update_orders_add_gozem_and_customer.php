@@ -10,7 +10,8 @@ return new class extends Migration
     {
         Schema::table('orders', function (Blueprint $table) {
             // Changer l'enum type pour inclure 'gozem'
-            $table->enum('type', ['dine_in', 'takeaway', 'gozem'])->default('dine_in')->change();
+            // Le type est déjà géré dans la migration initiale pour inclure 'gozem'
+            // $table->enum('type', ['dine_in', 'takeaway', 'gozem'])->default('dine_in')->change();
             // Infos client pour gozem et ardoise
             $table->string('customer_name', 100)->nullable()->after('covers');
             $table->string('customer_phone', 20)->nullable()->after('customer_name');

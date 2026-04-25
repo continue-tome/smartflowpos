@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('payments', function (Blueprint $table) {
             $table->foreignId('cake_order_id')->nullable()->after('order_id')->constrained()->nullOnDelete();
-            $table->unsignedBigInteger('order_id')->nullable()->change();
+            // $table->unsignedBigInteger('order_id')->nullable()->change();
         });
     }
 

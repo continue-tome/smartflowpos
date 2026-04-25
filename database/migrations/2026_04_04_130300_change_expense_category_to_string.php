@@ -11,7 +11,7 @@ return new class extends Migration
         // On change l'enum 'category' en simple 'string' pour éviter les erreurs 'Data truncated' 
         // avec les nouvelles catégories du frontend (purchases, staff, utilities, etc.)
         Schema::table('expenses', function (Blueprint $table) {
-            $table->string('category')->change();
+            // $table->string('category')->change();
         });
     }
 
