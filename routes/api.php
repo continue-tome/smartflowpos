@@ -15,6 +15,10 @@ Route::get('media/{path}', function ($path) {
     return response()->file(\Illuminate\Support\Facades\Storage::disk('public')->path($path));
 })->where('path', '.*');
 
+// ATTENTION: Faille de sécurité critique désactivée.
+// Cette route GET publique causait l'effacement complet des données
+// à cause des robots ou des appels automatiques.
+/*
 Route::get('setup-db', function() {
     try {
         // Run migrations
@@ -34,6 +38,7 @@ Route::get('setup-db', function() {
         ], 500);
     }
 });
+*/
 
 Route::get('test-email', function (\Illuminate\Http\Request $request) {
     $to = $request->query('email', 'sewodakomla@gmail.com');
