@@ -33,7 +33,7 @@ class PublicOrderController extends Controller
     /**
      * Enregistre une commande venant du menu public (QR Code ou Distant).
      */
-    public function store(Request $request, string $restaurantSlug)
+    public function store(Request $request, string $restaurantSlug, \App\Services\TicketPrintService $ticketService)
     {
         $restaurant = Restaurant::where('slug', $restaurantSlug)->first() ?? Restaurant::first();
         if (!$restaurant) return response()->json(['message' => 'Aucun restaurant configuré'], 404);
@@ -52,14 +52,13 @@ class PublicOrderController extends Controller
 
         $order = DB::transaction(function () use ($request, $restaurant) {
             // Un utilisateur système par défaut ou null pour les commandes QR
-            // On peut chercher un manager pour lui assigner la commande par défaut
             $defaultUser = $restaurant->users()->whereHas('role', fn($q) => $q->where('slug', 'manager'))->first() 
                            ?? $restaurant->users()->first();
 
             $order = Order::create([
                 'restaurant_id'  => $restaurant->id,
                 'table_id'       => $request->table_id,
-                'user_id'        => $defaultUser?->id, // Responsable par défaut
+                'user_id'        => $defaultUser?->id,
                 'order_number'   => Order::generateNumber($restaurant->id),
                 'type'           => $request->type,
                 'status'         => 'open',
@@ -105,13 +104,27 @@ class PublicOrderController extends Controller
             return $order;
         });
 
-        // Déclencher l'événement pour la sonnerie en caisse
-        broadcast(new OrderCreated($order->load('items.product', 'table')))->toOthers();
+        // Générer les tickets pour l'impression (Cuisine, Bar, Pizza)
+        $tickets = [];
+        $destinations = ['kitchen', 'bar', 'pizza'];
+        foreach ($destinations as $dest) {
+            $html = $ticketService->kitchenTicketHtml($order, $dest);
+            if ($html) {
+                $tickets[] = [
+                    'destination' => $dest,
+                    'html' => $html
+                ];
+            }
+        }
+
+        // Déclencher l'événement pour la sonnerie et l'impression automatique en caisse
+        broadcast(new OrderCreated($order->load('items.product', 'table'), $tickets))->toOthers();
 
         return response()->json([
             'message'      => 'Commande envoyée avec succès !',
             'order_number' => $order->order_number,
-            'order'        => $order->load('items.product')
-        ], 210);
+            'order'        => $order->load('items.product'),
+            'tickets'      => $tickets
+        ], 201);
     }
 }

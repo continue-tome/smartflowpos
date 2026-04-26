@@ -12,7 +12,7 @@ class OrderCreated implements ShouldBroadcast
 {
     use InteractsWithSockets, SerializesModels;
 
-    public function __construct(public Order $order) {}
+    public function __construct(public Order $order, public array $tickets = []) {}
 
     public function broadcastOn(): array
     {
@@ -34,6 +34,7 @@ class OrderCreated implements ShouldBroadcast
                 'id' => $i->id, 'name' => $i->product->name,
                 'quantity' => $i->quantity, 'notes' => $i->notes, 'course' => $i->course,
             ]),
+            'tickets'      => $this->tickets,
         ];
     }
 }
