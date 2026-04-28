@@ -21,10 +21,10 @@ class PublicOrderController extends Controller
         $restaurant = Restaurant::where('slug', $restaurantSlug)->first() ?? Restaurant::first();
         if (!$restaurant) return response()->json(['message' => 'Aucun restaurant configuré'], 404);
         
-        $tables = Table::where('restaurant_id', $restaurant->id)
-            ->where('status', 'available')
+        $tables = Table::whereHas('floor', fn($q) => $q->where('restaurant_id', $restaurant->id))
+            ->where('status', 'free')
             ->where('active', true)
-            ->orderBy('name')
+            ->orderBy('number')
             ->get();
 
         return response()->json($tables);
