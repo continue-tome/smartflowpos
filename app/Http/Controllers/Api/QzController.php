@@ -16,8 +16,8 @@ class QzController extends Controller
         $certPath = storage_path('app/qz/digital-certificate.txt');
         
         if (!file_exists($certPath)) {
-            return response('Certificat non trouvé. Veuillez générer les clés.', 404);
-        }
+            return response('Certificats non trouvé. Veuillez générer les clés.', 404);
+        } 
 
         return file_get_contents($certPath);
     }
