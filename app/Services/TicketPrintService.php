@@ -247,37 +247,65 @@ class TicketPrintService
         $deliveryDate = \Carbon\Carbon::parse($cakeOrder->delivery_date)->format('d/m/y');
         $deliveryTime = $cakeOrder->delivery_time ? " " . substr($cakeOrder->delivery_time, 0, 5) : '';
 
+        // QR Code Base64
+        // $qrPath = public_path('img/website_qr.png');
+        // $qrBase64 = null;
+        // if (file_exists($qrPath)) {
+        //     $qrData = base64_encode(file_get_contents($qrPath));
+        //     $qrBase64 = 'data:image/png;base64,' . $qrData;
+        // }
+
         $html = "
-        <div style='font-family: monospace; width: 100%; font-size: 12px; color: #000; line-height: 1.25;'>
-            <div style='text-align: center; font-weight: bold; border-bottom: 1px solid #000;'>COMMANDE GATEAU #{$cakeOrder->order_number}</div>
+        <div style='font-family: monospace; width: 100%; font-size: 11px; color: #000; line-height: 1.2; background: #fff;'>
+            <div style='text-align: center;'>
+                <div style='font-size: 14px; font-weight: bold;'>" . strtoupper($restaurant->name) . "</div>
+                <div style='font-weight: bold; border-top: 1px dashed #000; border-bottom: 1px dashed #000; margin: 5px 0; padding: 3px 0;'>
+                    COMMANDE GATEAU #{$cakeOrder->order_number}
+                </div>
+            </div>
             
-            <div style='margin: 5px 0;'>
-                <b>CLIENT:</b> " . strtoupper($cakeOrder->customer_name) . "<br>
-                <b>TEL:</b> {$cakeOrder->customer_phone}<br>
-                <b>LIVRER LE:</b> <span style='border: 1px solid #000; padding: 0 3px; font-weight: bold;'>{$deliveryDate}{$deliveryTime}</span>
+            <div style='margin: 8px 0; font-weight: bold;'>
+                CLIENT: " . strtoupper($cakeOrder->customer_name) . "<br>
+                TEL: {$cakeOrder->customer_phone}<br>
+                LIVRER LE: <span style='border: 1px solid #000; padding: 1px 4px;'>{$deliveryDate}{$deliveryTime}</span>
             </div>
 
-            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-bottom: 2px;'>DETAILS</div>";
+            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-bottom: 3px;'>ARTICLES</div>";
 
         foreach ($cakeOrder->items as $item) {
             $html .= "
-                <div style='display:flex; justify-content:space-between; font-weight: bold;'>
-                    <span>x{$item['qty']} " . strtoupper($item['name']) . "</span>
-                    <span>" . number_format($item['qty'] * $item['unit_price'], 0, ',', ' ') . "</span>
-                </div>";
+                <div style='font-weight: bold; margin-bottom: 2px;'>
+                    <div style='display:flex; justify-content:space-between;'>
+                        <span>x{$item['qty']} " . strtoupper($item['name']) . "</span>
+                        <span>" . number_format($item['qty'] * $item['unit_price'], 0, ',', ' ') . "</span>
+                    </div>";
             if (!empty($item['notes'])) {
-                $html .= "<div style='font-size:11px; font-style:italic; font-weight: bold;'>- " . $item['notes'] . "</div>";
+                $html .= "<div style='font-size:10px; font-style:italic; padding-left: 10px;'>- " . $item['notes'] . "</div>";
             }
+            $html .= "</div>";
         }
 
         $html .= "
-            <div style='border-top: 1px dashed #000; margin-top: 5px; padding-top: 3px;'>
-                <div style='display:flex; justify-content:space-between;'><span>TOTAL:</span><b>" . number_format($cakeOrder->total, 0, ',', ' ') . "</b></div>
-                <div style='display:flex; justify-content:space-between;'><span>AVANCE:</span><b>" . number_format($cakeOrder->advance_paid, 0, ',', ' ') . "</b></div>
-                <div style='display:flex; justify-content:space-between; font-size:14px; margin-top:3px; border: 1px solid #000; padding: 2px; font-weight: bold;'>
-                    <span>RESTE:</span>
-                    <b>" . number_format($cakeOrder->remaining_amount, 0, ',', ' ') . " F</b>
-                </div>
+            <div style='border-top: 1px dashed #000; margin-top: 5px; padding-top: 5px;'>
+                <table style='width: 100%; font-weight: bold;'>
+                    <tr><td>TOTAL:</td><td style='text-align: right;'>" . number_format($cakeOrder->total, 0, ',', ' ') . "</td></tr>
+                    <tr><td>AVANCE:</td><td style='text-align: right;'>" . number_format($cakeOrder->advance_paid, 0, ',', ' ') . "</td></tr>
+                    <tr style='font-size: 13px;'>
+                        <td style='border: 1px solid #000; padding: 2px;'>RESTE:</td>
+                        <td style='text-align: right; border: 1px solid #000; padding: 2px;'>" . number_format($cakeOrder->remaining_amount, 0, ',', ' ') . " FCFA</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style='text-align: center; margin-top: 15px;'>
+                <div style='font-weight: bold; margin-bottom: 5px;'>Merci de votre confiance !</div>";
+        
+        // if ($qrBase64) {
+        //     $html .= "<img src='{$qrBase64}' style='width: 60px; height: 60px; display: inline-block; filter: grayscale(100%);'>";
+        // }
+
+        $html .= "
+                <div style='font-size: 9px; margin-top: 5px; font-weight: bold;'>" . now()->format('d/m/Y H:i') . "</div>
             </div>
         </div>";
 
