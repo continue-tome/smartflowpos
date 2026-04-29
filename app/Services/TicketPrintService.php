@@ -546,11 +546,8 @@ class TicketPrintService
         $html = "<html><head><style>
             @page { margin: 10mm; }
             body { margin: 0; padding: 0; background: #fff; }
-            .copy-wrapper { width: 100%; margin-bottom: 10mm; }
-            .divider { border-bottom: 1px dashed #000; margin: 10mm 0; width: 100%; }
+            .copy-wrapper { width: 100%; }
         </style></head><body>
-            <div class='copy-wrapper'>{$content}</div>
-            <div class='divider'></div>
             <div class='copy-wrapper'>{$content}</div>
         </body></html>";
         
@@ -677,6 +674,110 @@ class TicketPrintService
     {
         $html = "<html><body>" . $this->kitchenTicketHtml($order, $destination, $itemIds) . "</body></html>";
         return Pdf::loadHTML($html)->setPaper([0, 0, 226.77, 600])->output();
+    }
+
+    /**
+     * Facture A4 pour une ardoise client (CustomerTab)
+     */
+    public function tabInvoiceA4Html(\App\Models\CustomerTab $tab): string
+    {
+        $restaurant = $tab->restaurant;
+        $customer = $tab->full_name;
+        $date = now()->format('d/m/Y');
+        $tab->load('orders.items.product');
+
+        $qrPath = public_path('img/website_qr.png');
+        $qrBase64 = null;
+        if (file_exists($qrPath)) {
+            $qrData = base64_encode(file_get_contents($qrPath));
+            $qrBase64 = 'data:image/png;base64,' . $qrData;
+        }
+
+        $html = "
+        <div style='padding: 15px; border: 1px solid #000; font-family: Arial, sans-serif; background: #fff; color: #000;'>
+            <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;'>
+                <tr>
+                    <td>
+                        <h1 style='margin: 0; font-size: 22px;'>" . strtoupper($restaurant->name) . "</h1>
+                        <p style='margin: 2px 0; font-size: 11px;'>{$restaurant->address}</p>
+                        <p style='margin: 2px 0; font-size: 11px;'>Tél: {$restaurant->phone}</p>
+                    </td>
+                    <td style='text-align: right; vertical-align: top;'>
+                        <h2 style='margin: 0; font-size: 18px;'>RELEVÉ D'ARDOISE</h2>
+                        <p style='margin: 2px 0; font-size: 11px;'>Client: " . strtoupper($customer) . "</p>
+                        <p style='margin: 2px 0; font-size: 11px;'>Date: {$date}</p>
+                    </td>
+                </tr>
+            </table>
+
+            <div style='margin: 10px 0; font-size: 12px; font-weight: bold;'>
+                DÉTAIL DES CONSOMMATIONS
+            </div>
+
+            <table style='width: 100%; border-collapse: collapse; font-size: 11px;'>
+                <thead>
+                    <tr style='background: #f0f0f0; border: 1px solid #000;'>
+                        <th style='padding: 6px; text-align: left; border: 1px solid #000;'>DESIGNATION</th>
+                        <th style='padding: 6px; text-align: center; border: 1px solid #000;'>QTE</th>
+                        <th style='padding: 6px; text-align: right; border: 1px solid #000;'>P.U</th>
+                        <th style='padding: 6px; text-align: right; border: 1px solid #000;'>TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>";
+
+        $grandTotal = 0;
+        foreach ($tab->orders as $order) {
+            if ($order->status === 'cancelled') continue;
+            foreach ($order->items as $item) {
+                if ($item->status === 'cancelled') continue;
+                $lineTotal = $item->unit_price * $item->quantity;
+                $grandTotal += $lineTotal;
+                $html .= "
+                <tr>
+                    <td style='padding: 5px; border: 1px solid #000;'>" . strtoupper($item->product->name) . "</td>
+                    <td style='padding: 5px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
+                    <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
+                    <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($lineTotal, 0, ',', ' ') . "</td>
+                </tr>";
+            }
+        }
+
+        $paid = (float)$tab->paid_amount;
+        $remaining = max(0, $grandTotal - $paid);
+
+        $html .= "
+                </tbody>
+                <tfoot>
+                    <tr style='font-weight: bold;'>
+                        <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'>TOTAL GÉNÉRAL</td>
+                        <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format($grandTotal, 0, ',', ' ') . " FCFA</td>
+                    </tr>
+                    <tr>
+                        <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'>DÉJÀ PAYÉ</td>
+                        <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format($paid, 0, ',', ' ') . " FCFA</td>
+                    </tr>
+                    <tr style='background: #000; color: #fff;'>
+                        <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'>RESTE À PAYER</td>
+                        <td style='padding: 8px; text-align: right; border: 1px solid #000; font-size: 14px;'><strong>" . number_format($remaining, 0, ',', ' ') . " FCFA</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style='margin-top: 20px; text-align: center;'>
+                <p style='font-size: 11px; margin-bottom: 10px;'>Veuillez solder votre ardoise dans les plus brefs délais. Merci !</p>
+                " . ($qrBase64 ? "<img src='{$qrBase64}' style='width: 70px; height: 70px; filter: grayscale(100%);'>" : "") . "
+                <p style='font-size: 8px; font-weight: bold; margin-top: 5px;'>ID ARDOISE: #{$tab->id} • Généré le " . now()->format('d/m/Y H:i') . "</p>
+            </div>
+        </div>";
+
+        return $html;
+    }
+
+    public function generateTabInvoicePdf(\App\Models\CustomerTab $tab): string
+    {
+        $content = $this->tabInvoiceA4Html($tab);
+        $html = "<html><head><style>body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 20px; } .wrapper { width: 180mm; margin: 0 auto; }</style></head><body><div class='wrapper'>{$content}</div></body></html>";
+        return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
 
     private function methodLabel(string $method): string { return match($method) { 'cash' => 'Espèces', 'card' => 'Carte', 'wave' => 'Wave', 'orange_money' => 'Orange', 'momo' => 'Momo', default => 'Autre' }; }
