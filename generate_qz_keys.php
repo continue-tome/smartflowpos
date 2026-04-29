@@ -25,11 +25,13 @@ $config = array(
 $res = openssl_pkey_new($config);
 
 // Extract the private key from $res to $privKey
-openssl_pkey_export($res, $privKey);
+if (!openssl_pkey_export($res, $privKey, null, $config)) {
+    die("Error: Could not export private key. Check your openssl.cnf path or configuration.\n");
+}
 
 // Extract the public key from $res to $pubKey
-$pubKey = openssl_pkey_get_details($res);
-$pubKey = $pubKey["key"];
+$pubKeyDetails = openssl_pkey_get_details($res);
+$pubKey = $pubKeyDetails["key"];
 
 // Generate CSR
 $dn = array(
