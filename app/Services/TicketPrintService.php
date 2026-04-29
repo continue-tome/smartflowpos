@@ -293,37 +293,36 @@ class TicketPrintService
         $date = $order->created_at->format('d/m/Y');
         
         $html = "
-        <html><head><style>body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 20px; }</style></head><body>
-        <div style='padding: 20px; border: 1px solid #000;'>
+        <div style='padding: 10px; border: 1px solid #000; margin-bottom: 10px; font-family: Arial, sans-serif;'>
             <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 10px;'>
                 <tr>
                     <td>
-                        <h1 style='margin: 0; font-size: 24px;'>" . strtoupper($restaurant->name) . "</h1>
-                        <p style='margin: 2px 0;'>{$restaurant->address}</p>
-                        <p style='margin: 2px 0;'>Tél: {$restaurant->phone}</p>
-                        <p style='margin: 2px 0;'>IFU: 1001580865</p>
+                        <h1 style='margin: 0; font-size: 20px;'>" . strtoupper($restaurant->name) . "</h1>
+                        <p style='margin: 2px 0; font-size: 11px;'>{$restaurant->address}</p>
+                        <p style='margin: 2px 0; font-size: 11px;'>Tél: {$restaurant->phone}</p>
+                        <p style='margin: 2px 0; font-size: 11px;'>IFU: 1001580865</p>
                     </td>
                     <td style='text-align: right; vertical-align: top;'>
-                        <h2 style='margin: 0;'>FACTURE</h2>
-                        <p style='margin: 2px 0;'>N°: {$order->order_number}</p>
-                        <p style='margin: 2px 0;'>Date: {$date}</p>
+                        <h2 style='margin: 0; font-size: 18px;'>FACTURE</h2>
+                        <p style='margin: 2px 0; font-size: 11px;'>N°: {$order->order_number}</p>
+                        <p style='margin: 2px 0; font-size: 11px;'>Date: {$date}</p>
                     </td>
                 </tr>
             </table>
 
-            <div style='margin: 20px 0;'>
+            <div style='margin: 10px 0; font-size: 12px;'>
                 <strong>DOIT À:</strong><br>
                 " . strtoupper($customer) . "<br>
                 " . ($order->customer_phone ?: '') . "
             </div>
 
-            <table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>
+            <table style='width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px;'>
                 <thead>
                     <tr style='border-top: 2px solid #000; border-bottom: 2px solid #000;'>
-                        <th style='padding: 8px; text-align: left; border: 1px solid #000;'>DESIGNATION</th>
-                        <th style='padding: 8px; text-align: center; border: 1px solid #000;'>QTE</th>
-                        <th style='padding: 8px; text-align: right; border: 1px solid #000;'>P.U</th>
-                        <th style='padding: 8px; text-align: right; border: 1px solid #000;'>TOTAL</th>
+                        <th style='padding: 5px; text-align: left; border: 1px solid #000;'>DESIGNATION</th>
+                        <th style='padding: 5px; text-align: center; border: 1px solid #000;'>QTE</th>
+                        <th style='padding: 5px; text-align: right; border: 1px solid #000;'>P.U</th>
+                        <th style='padding: 5px; text-align: right; border: 1px solid #000;'>TOTAL</th>
                     </tr>
                 </thead>
                 <tbody>";
@@ -332,10 +331,10 @@ class TicketPrintService
             if ($item->status === 'cancelled') continue;
             $html .= "
                 <tr>
-                    <td style='padding: 8px; border: 1px solid #000;'>" . strtoupper($item->product->name) . "</td>
-                    <td style='padding: 8px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
-                    <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
-                    <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price * $item->quantity, 0, ',', ' ') . "</td>
+                    <td style='padding: 5px; border: 1px solid #000;'>" . strtoupper($item->product->name) . "</td>
+                    <td style='padding: 5px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
+                    <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
+                    <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price * $item->quantity, 0, ',', ' ') . "</td>
                 </tr>";
         }
 
@@ -343,33 +342,34 @@ class TicketPrintService
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
-                        <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->subtotal ?? 0), 0, ',', ' ') . "</td>
+                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
+                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->subtotal ?? 0), 0, ',', ' ') . "</td>
                     </tr>
                     <tr>
-                        <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
-                        <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format($order->vat_amount, 0, ',', ' ') . "</td>
+                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
+                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($order->vat_amount, 0, ',', ' ') . "</td>
                     </tr>
                     <tr style='border-top: 2px solid #000; border-bottom: 2px solid #000;'>
-                        <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>TOTAL TTC</strong></td>
-                        <td style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>" . number_format($order->total, 0, ',', ' ') . " FCFA</strong></td>
+                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TOTAL TTC</strong></td>
+                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>" . number_format($order->total, 0, ',', ' ') . " FCFA</strong></td>
                     </tr>
                 </tfoot>
             </table>
 
-            <div style='margin-top: 40px; text-align: right;'>
+            <div style='margin-top: 20px; text-align: right; font-size: 11px;'>
                 <p>La Direction</p>
-                <br><br>
+                <br>
                 <p>_________________________</p>
             </div>
-        </div></body></html>";
+        </div>";
 
         return $html;
     }
 
     public function generateInvoiceA4Pdf(Order $order): string
     {
-        $html = $this->invoiceA4Html($order);
+        $content = $this->invoiceA4Html($order);
+        $html = "<html><head><style>body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 20px; }</style></head><body>{$content}</body></html>";
         return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
 
@@ -385,10 +385,32 @@ class TicketPrintService
 
     public function generateBulkInvoiceA4Pdf($orders): string
     {
-        $html = "<html><body>";
+        $html = "<html><head><style>
+            body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+            .page { width: 210mm; height: 297mm; position: relative; }
+            .invoice-half { height: 148.5mm; overflow: hidden; padding: 10mm; box-sizing: border-box; position: relative; }
+            .divider { border-bottom: 1px dashed #000; position: absolute; bottom: 0; left: 5mm; right: 5mm; }
+        </style></head><body>";
+        
+        $count = 0;
         foreach ($orders as $order) {
-            $html .= "<div style='page-break-after: always;'>" . $this->invoiceA4Html($order) . "</div>";
+            if ($count % 2 === 0) {
+                $html .= "<div class='page'>";
+            }
+            
+            $html .= "<div class='invoice-half'>";
+            $html .= $this->invoiceA4Html($order);
+            if ($count % 2 === 0 && count($orders) > ($count + 1)) {
+                $html .= "<div class='divider'></div>";
+            }
+            $html .= "</div>";
+            
+            if ($count % 2 === 1 || $count === count($orders) - 1) {
+                $html .= "</div>"; // End of page
+            }
+            $count++;
         }
+        
         $html .= "</body></html>";
         return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
