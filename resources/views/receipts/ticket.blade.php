@@ -81,20 +81,6 @@
   @endif
   
   <div class="center">
-    @php
-      $logoPath = null;
-      if ($receipt['restaurant']['logo_raw'] ?? null) {
-          $path = storage_path('app/public/' . $receipt['restaurant']['logo_raw']);
-          if (file_exists($path)) {
-              $logoData = base64_encode(file_get_contents($path));
-              $logoPath = 'data:image/' . pathinfo($path, PATHINFO_EXTENSION) . ';base64,' . $logoData;
-          }
-      }
-    @endphp
-
-    @if(($receipt['footer']['show_logo'] ?? true) && $logoPath)
-      <img src="{{ $logoPath }}" class="logo" alt="" style="filter: grayscale(100%); -webkit-filter: grayscale(100%);">
-    @endif
     <div class="bold xlarge">{{ $receipt['restaurant']['name'] }}</div>
     @if($receipt['restaurant']['receipt_subtitle'] ?? null)
       <div class="bold" style="font-size:10px; margin-bottom: 1px;">{{ $receipt['restaurant']['receipt_subtitle'] }}</div>
