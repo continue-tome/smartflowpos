@@ -82,6 +82,7 @@ Route::get('customer-tabs/{tab}/invoice', [Api\CustomerTabController::class, 'in
 Route::get('receipts/{orderId}/kitchen-ticket', [Api\ReceiptController::class, 'kitchenTicket']);
 Route::get('expenses/{expense}/receipt',        [Api\ExpenseController::class, 'receipt']);
 Route::get('cash-sessions/{session}/report-preview',   [Api\CashSessionController::class, 'reportPreview']);
+Route::get('cash-sessions/{session}/report-html',      [Api\CashSessionController::class, 'reportHtml']);
 
 // QZ Tray (Public)
 Route::get('qz/certificate', [Api\QzController::class, 'getCertificate']);

@@ -114,9 +114,15 @@ class ExpenseController extends Controller
     /**
      * Reçu de dépense format PDF VÉRITABLE (DomPDF) avec FILIGRANE
      */
-    public function receipt(Expense $expense)
+    public function receipt(Request $request, Expense $expense)
     {
         $expense->load(['user', 'restaurant', 'cashSession']);
+
+        if ($request->query('format') === 'html') {
+            $html = app(\App\Services\TicketPrintService::class)->expenseReceiptHtml($expense);
+            return response()->json(['html' => $html]);
+        }
+
         $restaurantName = $expense->restaurant->name ?? 'SMARTFLOW POS';
 
         $html = "

@@ -168,6 +168,13 @@ class CashSessionController extends Controller
             ->header('Content-Disposition', 'attachment; filename="Rapport-Session-' . $session->id . '.pdf"');
     }
 
+    public function reportHtml(Request $request, CashSession $session)
+    {
+        $session->load(['user', 'restaurant']);
+        $html = app(\App\Services\TicketPrintService::class)->sessionReportHtml($session);
+        return response()->json(['html' => $html]);
+    }
+
     /** Historique des sessions */
     public function index(Request $request)
     {

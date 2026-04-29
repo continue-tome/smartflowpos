@@ -25,7 +25,8 @@ class OrderRoutingService
             'kitchen' => collect(),
             'bar'     => collect(),
             'pizza'   => collect(),
-            'all'     => $items, // On garde une copie de tout
+            'cakes'   => collect(),
+            'all'     => $items,
         ];
 
         foreach ($items as $item) {
@@ -33,7 +34,7 @@ class OrderRoutingService
             $groups[$destination]->push($item);
         }
 
-        return $groups; // On ne filtre plus pour garder les clés attendues
+        return $groups;
     }
 
     /**
@@ -49,7 +50,7 @@ class OrderRoutingService
 
         $dest = strtolower($category->destination);
         
-        return in_array($dest, ['kitchen', 'bar', 'pizza'])
+        return in_array($dest, ['kitchen', 'bar', 'pizza', 'cakes'])
             ? $dest
             : 'kitchen';
     }
@@ -63,6 +64,7 @@ class OrderRoutingService
             'kitchen' => 'CUISINE',
             'bar'     => 'BAR',
             'pizza'   => 'PIZZA',
+            'cakes'   => 'PATISSERIE',
             'all'     => 'GLOBAL (TOUT)',
             default   => 'PRODUCTION',
         };
@@ -77,6 +79,7 @@ class OrderRoutingService
             'kitchen' => '🍳',
             'bar'     => '🍺',
             'pizza'   => '🍕',
+            'cakes'   => '🍰',
             default   => '🍳',
         };
     }

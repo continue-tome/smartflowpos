@@ -207,6 +207,12 @@ class CakeOrderController extends Controller
     {
         abort_if($cakeOrder->restaurant_id !== $request->user()->restaurant_id, 403);
 
+        if ($request->query('format') === 'html') {
+            $cakeOrder->load('restaurant');
+            $html = app(\App\Services\TicketPrintService::class)->cakeOrderHtml($cakeOrder);
+            return response()->json(['html' => $html]);
+        }
+
         $items = collect($cakeOrder->items);
         $itemsHtml = '';
         foreach ($items as $item) {
