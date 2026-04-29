@@ -206,63 +206,13 @@ class CakeOrderController extends Controller
     public function ticket(Request $request, CakeOrder $cakeOrder)
     {
         abort_if($cakeOrder->restaurant_id !== $request->user()->restaurant_id, 403);
+        $cakeOrder->load('restaurant');
+
+        $html = app(\App\Services\TicketPrintService::class)->cakeOrderHtml($cakeOrder);
 
         if ($request->query('format') === 'html') {
-            $cakeOrder->load('restaurant');
-            $html = app(\App\Services\TicketPrintService::class)->cakeOrderHtml($cakeOrder);
             return response()->json(['html' => $html]);
         }
-
-        $items = collect($cakeOrder->items);
-        $itemsHtml = '';
-        foreach ($items as $item) {
-            $note = isset($item['notes']) && $item['notes']
-                ? "<div style='font-size:10px;font-style:italic;padding-left:22px'>{$item['notes']}</div>"
-                : '';
-            $price = number_format($item['unit_price'], 0, ',', ' ');
-            $total = number_format($item['qty'] * $item['unit_price'], 0, ',', ' ');
-            $itemsHtml .= "
-            <div style='display:flex;justify-content:space-between;padding:3px 0'>
-                <span><strong>x{$item['qty']}</strong> {$item['name']}</span>
-                <span>{$total} FCFA</span>
-            </div>{$note}";
-        }
-
-        $total     = number_format((float)$cakeOrder->total, 0, ',', ' ');
-        $advance   = number_format((float)$cakeOrder->advance_paid, 0, ',', ' ');
-        $remaining = number_format((float)$cakeOrder->remaining_amount, 0, ',', ' ');
-        $dDate     = \Carbon\Carbon::parse($cakeOrder->delivery_date)->format('d/m/Y');
-        $dTime     = $cakeOrder->delivery_time ? " à {$cakeOrder->delivery_time}" : '';
-
-        $html = "<!DOCTYPE html>
-<html>
-<head>
-<meta charset='UTF-8'>
-<style>
-  body { font-family:'Courier New',monospace; font-size:12px; width:58mm; padding:4px; }
-  .header { text-align:center; border-bottom:2px dashed #000; padding-bottom:6px; margin-bottom:6px; }
-  .divider { border-top:1px dashed #000; margin:4px 0; }
-  .footer { text-align:center; margin-top:8px; font-size:10px; }
-  @media print { @page { margin:0; } }
-</style>
-</head>
-<body>
-  <div class='header'>
-    <div style='font-size:14px;font-weight:bold'>🎂 COMMANDE GÂTEAU</div>
-    <div>#{$cakeOrder->order_number}</div>
-  </div>
-  <div><strong>Client:</strong> {$cakeOrder->customer_name}</div>
-  <div><strong>Tél:</strong> {$cakeOrder->customer_phone}</div>
-  <div><strong>Livraison:</strong> {$dDate}{$dTime}</div>
-  <div class='divider'></div>
-  {$itemsHtml}
-  <div class='divider'></div>
-  <div style='display:flex;justify-content:space-between'><span>TOTAL</span><span>{$total} FCFA</span></div>
-  <div style='display:flex;justify-content:space-between'><span>Acompte</span><span>{$advance} FCFA</span></div>
-  <div style='display:flex;justify-content:space-between;font-weight:bold'><span>RESTE</span><span>{$remaining} FCFA</span></div>
-  <div class='footer'>Merci pour votre commande !<br>Certifié par Omega POS</div>
-</body>
-</html>";
 
         return response($html)->header('Content-Type', 'text/html');
     }
@@ -281,6 +231,13 @@ class CakeOrderController extends Controller
         $date = \Carbon\Carbon::parse($cakeOrder->delivery_date)->locale('fr')->isoFormat('LL');
         $time = $cakeOrder->delivery_time ? substr($cakeOrder->delivery_time, 0, 5) : 'Non spécifiée';
 
+        $qrPath = public_path('img/website_qr.png');
+        $qrBase64 = null;
+        if (file_exists($qrPath)) {
+            $qrData = base64_encode(file_get_contents($qrPath));
+            $qrBase64 = 'data:image/png;base64,' . $qrData;
+        }
+
         $html = "
         <!DOCTYPE html>
         <html>
@@ -288,42 +245,42 @@ class CakeOrderController extends Controller
             <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
             <style>
                 @page { margin: 0; }
-                body { font-family: Helvetica, sans-serif; color: #1e293b; margin: 0; padding: 0; background: #fff; }
-                .container { padding: 50px; }
-                .header { border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px; }
-                .restaurant-name { font-size: 24px; font-weight: bold; color: #0f172a; text-transform: uppercase; }
-                .restaurant-info { font-size: 10px; color: #64748b; margin-top: 5px; }
+                body { font-family: Helvetica, sans-serif; color: #000; margin: 0; padding: 0; background: #fff; }
+                .container { padding: 40px; }
+                .header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+                .restaurant-name { font-size: 24px; font-weight: bold; color: #000; text-transform: uppercase; }
+                .restaurant-info { font-size: 10px; color: #000; margin-top: 5px; font-weight: bold; }
                 
-                .doc-type { float: right; background: #db2777; color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 14px; margin-top: -60px; }
+                .doc-type { float: right; border: 2px solid #000; color: #000; padding: 10px 20px; font-weight: bold; font-size: 14px; margin-top: -60px; text-transform: uppercase; }
                 
                 .title-section { margin-top: 20px; }
-                .doc-title { font-size: 18px; font-weight: bold; color: #db2777; }
-                .doc-ref { font-size: 12px; color: #64748b; margin-top: 5px; }
+                .doc-title { font-size: 18px; font-weight: bold; color: #000; border-bottom: 1px solid #000; display: inline-block; padding-bottom: 4px; }
+                .doc-ref { font-size: 12px; color: #000; margin-top: 8px; font-weight: bold; }
                 
-                .info-grid { width: 100%; margin-top: 40px; border-collapse: collapse; }
-                .info-box { width: 48%; background: #f8fafc; padding: 20px; border-radius: 10px; vertical-align: top; }
-                .info-label { font-size: 9px; font-weight: bold; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; }
-                .info-value { font-size: 13px; font-weight: bold; color: #1e293b; }
-                .info-sub { font-size: 11px; color: #64748b; margin-top: 4px; }
+                .info-grid { width: 100%; margin-top: 30px; border-collapse: collapse; }
+                .info-box { width: 48%; border: 1px solid #000; padding: 15px; vertical-align: top; }
+                .info-label { font-size: 9px; font-weight: bold; color: #000; text-transform: uppercase; margin-bottom: 8px; }
+                .info-value { font-size: 13px; font-weight: bold; color: #000; }
+                .info-sub { font-size: 11px; color: #000; margin-top: 4px; font-weight: bold; }
 
-                .items-table { width: 100%; margin-top: 40px; border-collapse: collapse; }
-                .items-table th { background: #0f172a; color: white; padding: 12px; text-align: left; font-size: 10px; text-transform: uppercase; }
-                .items-table td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+                .items-table { width: 100%; margin-top: 30px; border-collapse: collapse; }
+                .items-table th { background: #000; color: #fff; padding: 12px; text-align: left; font-size: 10px; text-transform: uppercase; }
+                .items-table td { padding: 15px 12px; border-bottom: 1px solid #000; font-size: 12px; color: #000; }
                 
-                .notes-section { margin-top: 30px; background: #f8fafc; padding: 15px; border-left: 4px solid #db2777; border-radius: 0 5px 5px 0; }
-                .notes-title { font-size: 10px; font-weight: bold; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; }
-                .notes-text { font-size: 11px; font-style: italic; color: #475569; }
+                .notes-section { margin-top: 30px; padding: 15px; border: 1px solid #000; }
+                .notes-title { font-size: 10px; font-weight: bold; color: #000; text-transform: uppercase; margin-bottom: 5px; }
+                .notes-text { font-size: 11px; font-weight: bold; color: #000; }
 
                 .totals-section { width: 100%; margin-top: 40px; }
-                .total-row { padding: 8px 0; font-size: 12px; }
-                .total-label { text-align: right; padding-right: 20px; color: #64748b; }
-                .total-value { text-align: right; width: 150px; font-weight: bold; }
-                .final-balance { background: #0f172a; color: white; }
+                .total-row { padding: 8px 0; font-size: 12px; font-weight: bold; }
+                .total-label { text-align: right; padding-right: 20px; color: #000; }
+                .total-value { text-align: right; width: 150px; font-weight: bold; color: #000; }
+                .final-balance { background: #000; color: #fff; }
                 .final-balance td { padding: 15px 20px; font-size: 16px; }
 
-                .footer { position: fixed; bottom: 40px; width: 100%; text-align: center; font-size: 9px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 20px; }
+                .footer { position: fixed; bottom: 40px; width: 100%; text-align: center; font-size: 9px; color: #000; border-top: 1px solid #000; padding-top: 20px; font-weight: bold; }
                 .signature-table { width: 100%; margin-top: 60px; }
-                .signature-box { border-top: 1px dashed #cbd5e1; padding-top: 10px; text-align: center; font-size: 10px; color: #64748b; width: 40%; }
+                .signature-box { border-top: 1px dashed #000; padding-top: 10px; text-align: center; font-size: 10px; color: #000; width: 40%; font-weight: bold; }
             </style>
         </head>
         <body>
@@ -354,7 +311,7 @@ class CakeOrderController extends Controller
                         <td class='info-box'>
                             <div class='info-label'>Livraison Prévue</div>
                             <div class='info-value'>{$date}</div>
-                            <div class='info-sub' style='color:#db2777; font-weight:bold;'>à {$time}</div>
+                            <div class='info-sub' style='color:#000; font-weight:bold;'>à {$time}</div>
                         </td>
                     </tr>
                 </table>
@@ -386,15 +343,17 @@ class CakeOrderController extends Controller
                         <td class='total-label'>Sous-total</td>
                         <td class='total-value'>{$total} FCFA</td>
                     </tr>
-                    <tr class='total-row' style='color: #059669;'>
+                    <tr class='total-row'>
                         <td class='total-label'>Acompte Reçu</td>
                         <td class='total-value'>- {$advance} FCFA</td>
                     </tr>
                     <tr class='final-balance'>
-                        <td class='total-label' style='color: white;'>SOLDE À PAYER</td>
-                        <td class='total-value'>{$remaining} FCFA</td>
+                        <td class='total-label' style='color: #fff;'>SOLDE À PAYER</td>
+                        <td class='total-value' style='color: #fff;'>{$remaining} FCFA</td>
                     </tr>
                 </table>
+
+                
 
                 <table class='signature-table'>
                     <tr>
