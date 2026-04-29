@@ -385,15 +385,17 @@ class TicketPrintService
     public function generateBulkInvoiceA4Pdf($orders): string
     {
         $html = "<html><head><style>
-            body { margin: 0; padding: 15mm; font-family: Arial, sans-serif; background: #fff; }
-            .invoice-container { width: 180mm; margin: 0 auto; position: relative; }
-            .divider { border-bottom: 1px dashed #000; margin: 15px 0; width: 100%; }
+            body { margin: 0; padding: 10mm; font-family: Arial, sans-serif; background: #fff; }
+            .invoice-outer { width: 100%; margin-bottom: 20px; }
+            .invoice-inner { width: 180mm; margin: 0 auto; }
+            .divider { border-bottom: 1px dashed #000; margin: 15px 0; width: 180mm; margin-left: auto; margin-right: auto; }
         </style></head><body>";
         
         $count = 0;
         foreach ($orders as $order) {
-            $html .= "<div class='invoice-container'>";
+            $html .= "<div class='invoice-outer'><div class='invoice-inner'>";
             $html .= $this->invoiceA4Html($order);
+            $html .= "</div>";
             if ($count < count($orders) - 1) {
                 $html .= "<div class='divider'></div>";
             }

@@ -157,8 +157,8 @@
     <div class="footer-msg">{{ $receipt['footer']['message'] }}</div>
     @if($receipt['footer']['website'])<div style="font-size:9px; font-weight: bold;">{{ $receipt['footer']['website'] }}</div>@endif
     
-    <div style="margin-top: 5px;">
-      <img src="{{ asset('img/website_qr.png') }}" style="width: 60px; height: 60px; filter: grayscale(100%);">
+    <div style="margin-top: 8px; text-align: center;">
+      <img src="{{ asset('img/website_qr.png') }}" style="width: 60px; height: 60px; filter: grayscale(100%); display: inline-block;">
     </div>
 
     <div style="font-size:8px; margin-top:2px; font-weight: bold;">{{ now()->format('d/m/Y H:i') }}</div>
