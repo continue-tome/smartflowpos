@@ -10,7 +10,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-neutral-100 flex flex-col items-center justify-center p-4">
-        <h1 className="text-4xl font-bold text-blue-600 mb-8">smartflow POS</h1>
+        <h1 className="text-4xl font-bold text-blue-600 mb-8">SmartFlow Pos</h1>
         <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-4xl min-h-[600px]">
           <Routes>
             <Route path="/" element={<Dashboard />} />

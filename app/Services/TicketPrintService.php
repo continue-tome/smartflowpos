@@ -25,7 +25,7 @@ class TicketPrintService
      * Ticket destination (cuisine/bar/pizza) — SANS PRIX
      * Format 58mm pour imprimante thermique
      */
-    public function kitchenTicketHtml(Order $order, string $destination = 'kitchen'): string
+    public function kitchenTicketHtml(Order $order, string $destination = 'kitchen', ?array $itemIds = null): string
     {
         $order->loadMissing([
             'items.product.category',
@@ -35,6 +35,12 @@ class TicketPrintService
 
         // Filtrer uniquement les items de cette destination
         $filteredItems = $order->items->whereNotIn('status', ['cancelled']);
+
+        // AJOUT : Si on a spécifié des IDs précis (nouvel envoi), on ne prend que ceux-là
+        if ($itemIds) {
+            $filteredItems = $filteredItems->whereIn('id', $itemIds);
+        }
+
         $allGroups = $this->routing->groupByDestination($filteredItems);
         $items = $allGroups[$destination] ?? collect();
 
@@ -55,7 +61,7 @@ class TicketPrintService
 
         $itemsHtml = '';
         foreach ($items as $item) {
-            $note = $item->notes ? "<div class='note'>⚠ {$item->notes}</div>" : '';
+            $note = $item->notes ? "<div class='note'>{$item->notes}</div>" : '';
             $itemsHtml .= "
             <div class='item'>
                 <span class='qty'>x{$item->quantity}</span>
@@ -70,7 +76,7 @@ class TicketPrintService
         }
 
         $orderNote = $order->notes
-            ? "<div class='order-note'>📝 {$order->notes}</div>"
+            ? "<div class='order-note'>NOTE: {$order->notes}</div>"
             : '';
 
         $restaurant = $order->restaurant;
@@ -106,7 +112,7 @@ class TicketPrintService
 <body>
   {$logoHtml}
   <div class='header'>
-    <div class='destination'>{$icon} {$label}</div>
+    <div class='destination'>{$label}</div>
     <div class='order-num'>#{$order->order_number}</div>
     <div class='meta'>IFU: 1001580865 | {$locationLabel}{$restoPhone}</div>
   </div>
@@ -612,7 +618,7 @@ class TicketPrintService
     /**
      * Ticket Cuisine/Bar/Pizza en format PDF 58/80mm SANS PRIX
      */
-    public function generateKitchenTicketPdf(Order $order, string $destination = 'kitchen'): string
+    public function generateKitchenTicketPdf(Order $order, string $destination = 'kitchen', ?array $itemIds = null): string
     {
         $order->loadMissing([
             'items.product.category',
@@ -621,6 +627,11 @@ class TicketPrintService
         ]);
 
         $filteredItems = $order->items->whereNotIn('status', ['cancelled']);
+        
+        if ($itemIds) {
+            $filteredItems = $filteredItems->whereIn('id', $itemIds);
+        }
+
         $allGroups = $this->routing->groupByDestination($filteredItems);
         $items = $allGroups[$destination] ?? collect();
 

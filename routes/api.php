@@ -107,7 +107,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('floors/{floor}/tables/{table}', [Api\FloorController::class, 'removeTable']);
 
     // Tables
-    Route::get('tables',                   [Api\TableController::class, 'allTables']);
+    Route::get('tables/all',      [Api\TableController::class, 'allTables']);
+    Route::get('tables/occupied', [Api\TableController::class, 'occupiedTables']);
     Route::put('tables/{table}/status',    [Api\TableController::class, 'updateStatus']);
     Route::put('tables/{table}/layout',    [Api\TableController::class, 'updateLayout']);
     Route::put('tables/{table}/assign',    [Api\TableController::class, 'assign']);
@@ -248,6 +249,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Paramètres
     Route::get('settings',        [Api\SettingsController::class, 'show']);
+
+    // QZ Tray Signing
+    Route::get('qz/certificate', [Api\QzController::class, 'getCertificate']);
+    Route::post('qz/sign',        [Api\QzController::class, 'sign']);
 
     // Paramètres
     Route::get('settings',        [Api\SettingsController::class, 'show']);

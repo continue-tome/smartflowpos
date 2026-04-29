@@ -22,6 +22,22 @@ class TableController extends Controller
         return response()->json($tables);
     }
 
+    public function occupiedTables(Request $request)
+    {
+        $tables = Table::whereHas('floor', function($q) use ($request) {
+            $q->where('restaurant_id', $request->user()->restaurant_id);
+        })
+        ->where('status', 'occupied')
+        ->with(['currentOrder:id,table_id,order_number,total,created_at', 'assignedUser:id,first_name,last_name'])
+        ->get()
+        ->map(function($table) {
+            $table->occupation_minutes = $table->occupied_since ? now()->diffInMinutes($table->occupied_since) : 0;
+            return $table;
+        });
+
+        return response()->json($tables);
+    }
+
     public function index(Request $request, Floor $floor)
     {
         $this->authorizeFloor($request, $floor);

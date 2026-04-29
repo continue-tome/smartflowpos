@@ -1,0 +1,26 @@
+[ req ]
+default_bits        = 2048
+default_keyfile     = privkey.pem
+distinguished_name  = req_distinguished_name
+attributes          = req_attributes
+x509_extensions     = v3_ca
+
+[ req_distinguished_name ]
+countryName         = Country Name (2 letter code)
+countryName_default = TG
+stateOrProvinceName = State or Province Name (full name)
+stateOrProvinceName_default = Maritime
+localityName        = Locality Name (eg, city)
+localityName_default = Lome
+organizationName    = Organization Name (eg, company)
+organizationName_default = SmartFlow POS
+commonName          = Common Name (e.g. server FQDN or YOUR name)
+commonName_default = SmartFlow POS
+
+[ req_attributes ]
+challengePassword   = A challenge password
+
+[ v3_ca ]
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer
+basicConstraints = critical,CA:true

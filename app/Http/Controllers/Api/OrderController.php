@@ -174,9 +174,10 @@ class OrderController extends Controller
         }
 
         $items = $itemsQuery->get();
+        $sentItemIds = $items->pluck('id')->toArray();
         abort_if($items->isEmpty(), 422, 'Aucun item à envoyer en cuisine.');
 
-        DB::transaction(function () use ($request, $order, $items) {
+        DB::transaction(function () use ($request, $order, $items, $sentItemIds) {
             $items->each->update(['status' => 'preparing', 'sent_at' => now()]);
 
             $order->update([
@@ -184,7 +185,7 @@ class OrderController extends Controller
                 'sent_to_kitchen_at' => $order->sent_to_kitchen_at ?? now(),
             ]);
 
-            $order->logActivity('sent_to_kitchen', count($items) . " article(s) envoyé(s) en cuisine", ['item_ids' => $items->pluck('id')]);
+            $order->logActivity('sent_to_kitchen', count($items) . " article(s) envoyé(s) en cuisine", ['item_ids' => $sentItemIds]);
         });
 
         broadcast(new OrderCreated($order->load('items.product', 'table')))->toOthers();
@@ -194,7 +195,7 @@ class OrderController extends Controller
         $destinations = ['kitchen', 'bar', 'pizza'];
 
         foreach ($destinations as $dest) {
-            $html = $ticketService->kitchenTicketHtml($order, $dest);
+            $html = $ticketService->kitchenTicketHtml($order, $dest, $sentItemIds);
             if ($html) {
                 $tickets[] = [
                     'destination' => $dest,
