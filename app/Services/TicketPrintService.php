@@ -115,12 +115,12 @@ class TicketPrintService
         $filteredItems = $order->items->whereNotIn('status', ['cancelled']);
         if ($itemIds) { $filteredItems = $filteredItems->whereIn('id', $itemIds); }
 
-        $allGroups = $this->routing->groupByDestination($filteredItems);
+        $allGroups = $this->routing->groupByDestination(collect($filteredItems));
         $items = $allGroups[$destination] ?? collect();
         if ($items->isEmpty()) return '';
 
         $restaurant = $order->restaurant;
-        $tableLabel = $order->table ? "T" . $order->table->number : strtoupper($order->type);
+        $tableLabel = ($order->table instanceof \App\Models\Table) ? "T" . $order->table->number : strtoupper((string)$order->type);
         $date = now()->format('d/m H:i');
 
         return "
@@ -319,7 +319,7 @@ class TicketPrintService
 
             <table style='width: 100%; border-collapse: collapse; margin-top: 15px;'>
                 <thead>
-                    <tr style='background: #000; color: #fff;'>
+                    <tr style='border-top: 2px solid #000; border-bottom: 2px solid #000;'>
                         <th style='padding: 8px; text-align: left; border: 1px solid #000;'>DESIGNATION</th>
                         <th style='padding: 8px; text-align: center; border: 1px solid #000;'>QTE</th>
                         <th style='padding: 8px; text-align: right; border: 1px solid #000;'>P.U</th>
@@ -344,13 +344,13 @@ class TicketPrintService
                 <tfoot>
                     <tr>
                         <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
-                        <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format($order->subtotal, 0, ',', ' ') . "</td>
+                        <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->subtotal ?? 0), 0, ',', ' ') . "</td>
                     </tr>
                     <tr>
                         <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
                         <td style='padding: 8px; text-align: right; border: 1px solid #000;'>" . number_format($order->vat_amount, 0, ',', ' ') . "</td>
                     </tr>
-                    <tr style='background: #eee;'>
+                    <tr style='border-top: 2px solid #000; border-bottom: 2px solid #000;'>
                         <td colspan='3' style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>TOTAL TTC</strong></td>
                         <td style='padding: 8px; text-align: right; border: 1px solid #000;'><strong>" . number_format($order->total, 0, ',', ' ') . " FCFA</strong></td>
                     </tr>

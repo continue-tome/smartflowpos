@@ -34,13 +34,14 @@
     top: 45%; left: 50%;
     transform: translate(-50%, -50%) rotate(-30deg);
     font-size: 32px; font-weight: 900;
-    color: #000; /* Forcé en Noir */
-    border: 3px solid #000; /* Bordure Noire */
-    padding: 5px 20px;
+    color: #000;
+    border: 4px solid #000;
+    padding: 10px 25px;
     text-transform: uppercase;
     z-index: 10;
-    opacity: 0.1; /* Très léger pour ne pas cacher le texte */
+    opacity: 0.25;
     border-radius: 4px;
+    -webkit-print-color-adjust: exact;
   }
   .receipt-wrap .given-change-box {
     background: #fff; /* Fond Blanc */
@@ -81,7 +82,7 @@
   
   <div class="center">
     @if(($receipt['footer']['show_logo'] ?? true) && $receipt['restaurant']['logo'])
-      <img src="{{ $receipt['restaurant']['logo'] }}" class="logo" alt="" onerror="this.style.display='none';">
+      <img src="{{ $receipt['restaurant']['logo'] }}" class="logo" alt="" onerror="this.style.display='none';" style="filter: grayscale(100%); -webkit-filter: grayscale(100%);">
     @endif
     <div class="bold xlarge">{{ $receipt['restaurant']['name'] }}</div>
     @if($receipt['restaurant']['receipt_subtitle'] ?? null)

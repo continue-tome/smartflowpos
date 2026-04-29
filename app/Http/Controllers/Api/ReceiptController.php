@@ -75,40 +75,7 @@ class ReceiptController extends Controller
         return response()->json(['message' => 'Reçu envoyé par email.']);
     }
 
-    private function buildReceipt(Order $order, $restaurant, array $config): array
-    {
-        $currencySymbol = $config['currency_symbol'] ?? 'FCFA';
-        $currencyPosition = $config['currency_position'] ?? 'after';
-        $formatAmount = fn($amount) => $currencyPosition === 'before'
-            ? "{$currencySymbol} " . number_format($amount, 0, '.', ' ')
-            : number_format($amount, 0, '.', ' ') . " {$currencySymbol}";
-
-        $lines = $order->items->map(function ($item) use ($formatAmount) {
-            $modifiers = $item->modifiers->map(fn($m) => ['name' => $m->modifier->name, 'extra_price' => $m->extra_price, 'extra_fmt' => $m->extra_price > 0 ? '+' . number_format($m->extra_price, 0) : ''])->toArray();
-            $lineTotal = ($item->unit_price * $item->quantity) + collect($modifiers)->sum('extra_price') * $item->quantity;
-            return ['name' => $item->product->name, 'quantity' => $item->quantity, 'unit_price' => $item->unit_price, 'unit_fmt' => $formatAmount($item->unit_price), 'total' => $lineTotal, 'total_fmt' => $formatAmount($lineTotal), 'notes' => $item->notes, 'modifiers' => $modifiers];
-        })->toArray();
-
-        $paymentLines = $order->payments->map(fn($p) => ['method' => $this->methodLabel($p->method), 'amount' => $p->amount, 'amount_fmt' => $formatAmount($p->amount), 'reference' => $p->reference, 'amount_given' => $p->amount_given, 'change_given' => $p->change_given, 'change_fmt' => $p->change_given ? $formatAmount($p->change_given) : null])->toArray();
-
-        return [
-            'restaurant' => [
-                'name' => $restaurant->name, 
-                'logo' => $restaurant->logo ? asset('storage/' . $restaurant->logo) : null, 
-                'address' => $restaurant->address, 
-                'phone' => $restaurant->phone, 
-                'email' => $restaurant->email, 
-                'vat_number' => $restaurant->vat_number,
-                'receipt_subtitle' => data_get($restaurant->settings, 'receipt_subtitle')
-            ],
-            'order' => ['id' => $order->id, 'number' => $order->order_number, 'date' => $order->created_at->format('d/m/Y'), 'time' => $order->created_at->format('H:i'), 'paid_at' => $order->paid_at?->format('d/m/Y H:i'), 'table_number' => $order->table?->number, 'covers' => $order->covers, 'type' => $order->type, 'type_label' => $this->typeLabel($order->type), 'waiter' => $order->waiter?->full_name, 'cashier' => $order->cashier?->full_name, 'notes' => $order->notes],
-            'lines' => $lines,
-            'totals' => ['subtotal' => $order->subtotal, 'subtotal_fmt' => $formatAmount($order->subtotal), 'discount' => $order->discount_amount, 'discount_fmt' => $order->discount_amount > 0 ? '-' . $formatAmount($order->discount_amount) : null, 'discount_reason' => $order->discount_reason, 'vat_rate' => $config['default_vat_rate'] ?? 18, 'vat_amount' => $order->vat_amount, 'vat_fmt' => $formatAmount($order->vat_amount), 'total' => $order->total, 'total_fmt' => $formatAmount($order->total), 'amount_paid' => $order->amountPaid(), 'amount_paid_fmt' => $formatAmount($order->amountPaid()), 'change' => max(0, $order->amountPaid() - $order->total), 'change_fmt' => $formatAmount(max(0, $order->amountPaid() - $order->total))],
-            'payments' => $paymentLines,
-            'footer' => ['message' => $config['receipt_footer'] ?? 'Merci de votre visite !', 'website' => $config['receipt_website'] ?? null, 'show_logo' => $config['receipt_logo'] ?? true, 'width' => $config['receipt_width'] ?? '80mm'],
-            'generated_at' => now()->toIso8601String(),
-        ];
-    }
+    // Redundant methods removed, now using TicketPrintService exclusively.
 
     /** Facture A4 normalisée */
     public function invoiceA4(Request $request, int $orderId)
