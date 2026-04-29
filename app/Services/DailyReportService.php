@@ -30,12 +30,12 @@ class DailyReportService
         
         // 1. En-tête
         $pdf->SetFont('Helvetica', 'B', 18);
-        $pdf->SetTextColor(249, 115, 22); // Orange
+        $pdf->SetTextColor(0, 0, 0); // Noir
         $restaurantName = $data['restaurant'] ? $data['restaurant']->name : 'RESTAURANT';
         $pdf->Cell(0, 8, utf8_decode(strtoupper($restaurantName)), 0, 1, 'C');
         
         $pdf->SetFont('Helvetica', '', 11);
-        $pdf->SetTextColor(100, 100, 100);
+        $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell(0, 6, "RAPPORT FINANCIER DE CAISSE", 0, 1, 'C');
         $pdf->Ln(4);
         
@@ -56,9 +56,9 @@ class DailyReportService
         $currentY = $pdf->GetY();
         
         // Rectangles de fond pour Recette, Dépenses
-        $pdf->SetFillColor(30, 41, 59); // Bleu foncé
+        $pdf->SetFillColor(0, 0, 0); // Noir
         $pdf->Rect(10, $currentY, 90, 20, 'F');
-        $pdf->SetFillColor(241, 245, 249); // Gris clair
+        $pdf->SetFillColor(240, 240, 240); // Gris très clair
         $pdf->Rect(105, $currentY, 95, 20, 'F');
         
         // Textes
@@ -76,11 +76,11 @@ class DailyReportService
             $pdf->Cell(90, 5, utf8_decode("(Dont TVA : " . number_format((float)$data['totalVat'], 0, ',', ' ') . " F)"), 0, 1, 'C');
         }
 
-        $pdf->SetTextColor(71, 85, 105);
+        $pdf->SetTextColor(0, 0, 0);
         $pdf->SetXY(105, $currentY + 3);
         $pdf->SetFont('Helvetica', '', 8);
         $pdf->Cell(95, 5, utf8_decode("DÉPENSES"), 0, 1, 'C');
-        $pdf->SetTextColor(239, 68, 68); // Rouge
+        $pdf->SetTextColor(0, 0, 0); 
         $pdf->SetXY(105, $currentY + 8);
         $pdf->SetFont('Helvetica', 'B', 14);
         $pdf->Cell(95, 8, "- " . number_format((float)$data['totalExpenses'], 0, ',', ' ') . " FCFA", 0, 1, 'C');
@@ -90,7 +90,7 @@ class DailyReportService
 
         // 4. Synthèse Trésorerie
         $pdf->SetFont('Helvetica', 'B', 11);
-        $pdf->SetFillColor(26, 26, 46);
+        $pdf->SetFillColor(0, 0, 0);
         $pdf->SetTextColor(255, 255, 255);
         $pdf->Cell(0, 8, utf8_decode(" SYNTHESE DES FLUX"), 0, 1, 'L', true);
         
@@ -102,7 +102,7 @@ class DailyReportService
         $pdf->Cell(90, 6, "Ventes en especes", 'B', 0, 'L');
         $pdf->Cell(90, 6, "+" . number_format((float)($session->expected_amount - $session->opening_amount + $data['totalExpenses']), 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
-        $pdf->SetTextColor(220, 38, 38);
+        $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell(90, 6, utf8_decode("Depenses deduites"), 'B', 0, 'L');
         $pdf->Cell(90, 6, "-" . number_format((float)$data['totalExpenses'], 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
@@ -118,7 +118,7 @@ class DailyReportService
         $pdf->Cell(90, 6, "Fond de roulement restant", 'B', 0, 'L');
         $pdf->Cell(90, 6, ($session->remaining_amount ? number_format((float)$session->remaining_amount, 0, ',', ' ') : '0') . " FCFA", 'B', 1, 'R');
         
-        $diffColor = ($session->difference ?? 0) >= 0 ? [22, 163, 74] : [220, 38, 38];
+        $diffColor = [0, 0, 0];
         $pdf->SetFont('Helvetica', 'B', 13);
         $pdf->Cell(90, 10, utf8_decode("ECART FINAL"), 'B', 0, 'L');
         $pdf->SetTextColor($diffColor[0], $diffColor[1], $diffColor[2]);
@@ -129,7 +129,7 @@ class DailyReportService
 
         // 5. Modes de Paiements
         $pdf->SetFont('Helvetica', 'B', 11);
-        $pdf->SetFillColor(26, 26, 46);
+        $pdf->SetFillColor(0, 0, 0);
         $pdf->SetTextColor(255, 255, 255);
         $pdf->Cell(0, 8, utf8_decode(" DETAILS DES ENCAISSEMENTS"), 0, 1, 'L', true);
         
@@ -150,7 +150,7 @@ class DailyReportService
 
         // 5.5 Performances des secteurs (Catégories) et Crédits
         $pdf->SetFont('Helvetica', 'B', 11);
-        $pdf->SetFillColor(26, 26, 46);
+        $pdf->SetFillColor(0, 0, 0);
         $pdf->SetTextColor(255, 255, 255);
         $pdf->Cell(0, 8, utf8_decode(" PERFORMANCES DES SECTEURS ET CRÉDITS"), 0, 1, 'L', true);
         
@@ -163,19 +163,30 @@ class DailyReportService
         foreach ($data['categoryStats'] as $catStat) {
             if ($pdf->GetY() > 270) $pdf->AddPage();
             $pdf->Cell(130, 6, utf8_decode("VENTES - " . strtoupper($catStat->category_name)), 'B', 0, 'L');
-            $pdf->SetTextColor(16, 185, 129); // Green text
+            $pdf->SetTextColor(0, 0, 0); 
             $pdf->Cell(50, 6, number_format((float)$catStat->total_amount, 0, ',', ' ') . " FCFA", 'B', 1, 'R');
             $pdf->SetTextColor(0, 0, 0); // Reset
         }
         
         if ($pdf->GetY() > 270) $pdf->AddPage();
-        $pdf->SetTextColor(234, 88, 12); // Orange text
+        $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFont('Helvetica', 'B', 10);
         $pdf->Cell(130, 6, utf8_decode("TOTAL DES ARDOISES (CRÉDITS)"), 'B', 0, 'L');
         $pdf->Cell(50, 6, number_format((float)$data['totalCredits'], 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         $pdf->SetTextColor(0, 0, 0); // Reset
         
-        $pdf->Ln(8);
+        $pdf->Ln(5);
+        
+        // 6. QR Code
+        $qrPath = public_path('img/website_qr.png');
+        if (file_exists($qrPath)) {
+            $pdf->Image($qrPath, 90, $pdf->GetY(), 30, 30);
+            $pdf->Ln(32);
+        }
+
+        $pdf->SetFont('Helvetica', 'I', 8);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->Cell(0, 6, utf8_decode("Document généré le " . date('d/m/Y à H:i') . " par Omega POS"), 0, 1, 'C');
 
         return $pdf->Output('S');
     }

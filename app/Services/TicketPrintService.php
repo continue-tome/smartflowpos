@@ -7,6 +7,8 @@ use App\Models\OrderItem;
 use App\Models\OrderItemNote;
 use App\Models\Restaurant;
 use App\Models\Table;
+use App\Models\CakeOrder;
+use App\Models\Expense;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 
@@ -555,6 +557,109 @@ class TicketPrintService
         return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
 
+    /**
+     * Génère le HTML A4 professionnel pour un reçu de dépense
+     */
+    public function expenseA4Html(Expense $expense): string
+    {
+        $restaurant = $expense->restaurant;
+        $id = str_pad($expense->id, 6, '0', STR_PAD_LEFT);
+        $date = $expense->created_at->format('d/m/Y à H:i');
+        $amount = number_format((float)$expense->amount, 0, ',', ' ');
+
+        $qrPath = public_path('img/website_qr.png');
+        $qrBase64 = null;
+        if (file_exists($qrPath)) {
+            $qrData = base64_encode(file_get_contents($qrPath));
+            $qrBase64 = 'data:image/png;base64,' . $qrData;
+        }
+
+        return "
+        <div style='font-family: Helvetica, sans-serif; color: #000; padding: 15px; border: 1px solid #000; position: relative;'>
+            <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;'>
+                <tr>
+                    <td style='vertical-align: top;'>
+                        <div style='font-size: 18px; font-weight: bold; text-transform: uppercase;'>{$restaurant->name}</div>
+                        <div style='font-size: 9px; font-weight: bold; margin-top: 2px;'>
+                            {$restaurant->address}<br>
+                            Tél: {$restaurant->phone}
+                        </div>
+                    </td>
+                    <td style='text-align: right; vertical-align: top;'>
+                        <div style='border: 2px solid #000; padding: 5px 10px; font-weight: bold; font-size: 11px; display: inline-block;'>PIÈCE COMPTABLE</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div style='font-size: 14px; font-weight: bold; margin-bottom: 2px;'>JUSTIFICATIF DE SORTIE DE CAISSE</div>
+            <div style='font-size: 10px; font-weight: bold; margin-bottom: 15px;'>Réf: EXP-{$id} | Émis le {$date}</div>
+
+            <table style='width: 100%; border-collapse: collapse; margin-bottom: 15px;'>
+                <tr>
+                    <td style='width: 48%; border: 1px solid #000; padding: 8px; vertical-align: top;'>
+                        <div style='font-size: 8px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;'>Bénéficiaire</div>
+                        <div style='font-size: 11px; font-weight: bold;'>" . ($expense->beneficiary ?: 'Non spécifié') . "</div>
+                    </td>
+                    <td style='width: 4%;'></td>
+                    <td style='width: 48%; border: 1px solid #000; padding: 8px; vertical-align: top;'>
+                        <div style='font-size: 8px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;'>Agent / Coursier</div>
+                        <div style='font-size: 11px; font-weight: bold;'>" . ($expense->agent_name ?: 'Non spécifié') . "</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div style='border: 1px solid #000; padding: 10px; margin-bottom: 15px;'>
+                <div style='font-size: 8px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;'>Motif de la dépense</div>
+                <div style='font-size: 12px; font-weight: bold;'>" . strtoupper($expense->description) . "</div>
+                <div style='font-size: 9px; color: #333; margin-top: 4px;'>Catégorie: " . strtoupper($expense->category) . "</div>
+            </div>
+
+            <div style='background: #000; color: #fff; padding: 15px; text-align: center; margin-bottom: 20px;'>
+                <div style='font-size: 10px; text-transform: uppercase; margin-bottom: 5px;'>Montant Total Décaissé</div>
+                <div style='font-size: 24px; font-weight: bold;'>{$amount} FCFA</div>
+            </div>
+
+            <table style='width: 100%; margin-top: 20px;'>
+                <tr>
+                    <td style='width: 45%; border-top: 1px dashed #000; padding-top: 8px; text-align: center;'>
+                        <div style='font-size: 9px; font-weight: bold; text-transform: uppercase;'>Signature de l'Agent</div>
+                        <br><br>
+                    </td>
+                    <td style='width: 10%; text-align: center;'>
+                        " . ($qrBase64 ? "<img src='{$qrBase64}' style='width: 50px; height: 50px;'>" : "") . "
+                    </td>
+                    <td style='width: 45%; border-top: 1px dashed #000; padding-top: 8px; text-align: center;'>
+                        <div style='font-size: 9px; font-weight: bold; text-transform: uppercase;'>Validation Direction</div>
+                        <br><br>
+                    </td>
+                </tr>
+            </table>
+
+            <div style='margin-top: 15px; text-align: center; font-size: 7px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px;'>
+                ID Caisse: #" . ($expense->cash_session_id ?: 'N/A') . " • Établi par: " . ($expense->user->first_name ?? 'Inconnu') . " • " . now()->format('d/m/y H:i') . "
+            </div>
+        </div>";
+    }
+
+    /**
+     * Génère un PDF A4 avec 2 copies pour un reçu de dépense
+     */
+    public function generateExpenseA4Pdf(Expense $expense): string
+    {
+        $content = $this->expenseA4Html($expense);
+        $html = "<html><head><style>
+            @page { margin: 10mm; }
+            body { margin: 0; padding: 0; background: #fff; }
+            .copy-wrapper { width: 100%; margin-bottom: 10mm; }
+            .divider { border-bottom: 1px dashed #000; margin: 10mm 0; width: 100%; }
+        </style></head><body>
+            <div class='copy-wrapper'>{$content}</div>
+            <div class='divider'></div>
+            <div class='copy-wrapper'>{$content}</div>
+        </body></html>";
+        
+        return Pdf::loadHTML($html)->setPaper('a4')->output();
+    }
     public function generateBulkInvoiceA4Pdf($orders): string
     {
         $html = "<html><head><style>

@@ -219,7 +219,9 @@ class ExpenseController extends Controller
         </body>
         </html>";
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
-        return $pdf->download("Recu_Depense_EXP_" . $expense->id . ".pdf");
+        $pdfContent = app(\App\Services\TicketPrintService::class)->generateExpenseA4Pdf($expense);
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="Recu_Depense_EXP_' . $expense->id . '.pdf"');
     }
 }
