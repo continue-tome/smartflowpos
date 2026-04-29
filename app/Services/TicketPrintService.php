@@ -293,7 +293,7 @@ class TicketPrintService
         $date = $order->created_at->format('d/m/Y');
         
         $html = "
-        <div style='width: 175mm; margin: 0 auto; padding: 10px; border: 1px solid #000; font-family: Arial, sans-serif; background: #fff;'>
+        <div style='padding: 10px; border: 1px solid #000; font-family: Arial, sans-serif; background: #fff;'>
             <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 5px;'>
                 <tr>
                     <td>
@@ -346,11 +346,11 @@ class TicketPrintService
                     </tr>
                     <tr>
                         <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
-                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($order->vat_amount, 0, ',', ' ') . "</td>
+                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->vat_amount ?? 0), 0, ',', ' ') . "</td>
                     </tr>
                     <tr style='border-top: 2px solid #000; border-bottom: 2px solid #000;'>
                         <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TOTAL TTC</strong></td>
-                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>" . number_format($order->total, 0, ',', ' ') . " FCFA</strong></td>
+                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>" . number_format((float)($order->total ?? 0), 0, ',', ' ') . " FCFA</strong></td>
                     </tr>
                 </tfoot>
             </table>
@@ -368,7 +368,7 @@ class TicketPrintService
     public function generateInvoiceA4Pdf(Order $order): string
     {
         $content = $this->invoiceA4Html($order);
-        $html = "<html><head><style>body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 20px; }</style></head><body>{$content}</body></html>";
+        $html = "<html><head><style>body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 20px; } .wrapper { width: 180mm; margin: 0 auto; }</style></head><body><div class='wrapper'>{$content}</div></body></html>";
         return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
 
@@ -385,29 +385,19 @@ class TicketPrintService
     public function generateBulkInvoiceA4Pdf($orders): string
     {
         $html = "<html><head><style>
-            @page { margin: 0; }
-            body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
-            .page { width: 210mm; height: 297mm; position: relative; page-break-after: always; }
-            .invoice-half { height: 148mm; overflow: hidden; padding: 5mm 0; box-sizing: border-box; position: relative; }
-            .divider { border-bottom: 1px dashed #000; position: absolute; bottom: 0; left: 10mm; right: 10mm; z-index: 10; }
+            body { margin: 0; padding: 15mm; font-family: Arial, sans-serif; background: #fff; }
+            .invoice-container { width: 180mm; margin: 0 auto; position: relative; }
+            .divider { border-bottom: 1px dashed #000; margin: 15px 0; width: 100%; }
         </style></head><body>";
         
         $count = 0;
         foreach ($orders as $order) {
-            if ($count % 2 === 0) {
-                $html .= "<div class='page'>";
-            }
-            
-            $html .= "<div class='invoice-half'>";
+            $html .= "<div class='invoice-container'>";
             $html .= $this->invoiceA4Html($order);
-            if ($count % 2 === 0 && count($orders) > ($count + 1)) {
+            if ($count < count($orders) - 1) {
                 $html .= "<div class='divider'></div>";
             }
             $html .= "</div>";
-            
-            if ($count % 2 === 1 || $count === count($orders) - 1) {
-                $html .= "</div>"; // End of page
-            }
             $count++;
         }
         
