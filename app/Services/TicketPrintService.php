@@ -293,8 +293,8 @@ class TicketPrintService
         $date = $order->created_at->format('d/m/Y');
         
         $html = "
-        <div style='padding: 10px; border: 1px solid #000; margin-bottom: 10px; font-family: Arial, sans-serif;'>
-            <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 10px;'>
+        <div style='width: 175mm; margin: 0 auto; padding: 10px; border: 1px solid #000; font-family: Arial, sans-serif; background: #fff;'>
+            <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 5px;'>
                 <tr>
                     <td>
                         <h1 style='margin: 0; font-size: 20px;'>" . strtoupper($restaurant->name) . "</h1>
@@ -310,10 +310,9 @@ class TicketPrintService
                 </tr>
             </table>
 
-            <div style='margin: 10px 0; font-size: 12px;'>
+            <div style='margin: 8px 0; font-size: 11px;'>
                 <strong>DOIT À:</strong><br>
-                " . strtoupper($customer) . "<br>
-                " . ($order->customer_phone ?: '') . "
+                " . strtoupper($customer) . " " . ($order->customer_phone ?: '') . "
             </div>
 
             <table style='width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px;'>
@@ -356,10 +355,10 @@ class TicketPrintService
                 </tfoot>
             </table>
 
-            <div style='margin-top: 20px; text-align: right; font-size: 11px;'>
-                <p>La Direction</p>
+            <div style='margin-top: 15px; text-align: right; font-size: 11px;'>
+                <p style='margin: 0;'>La Direction</p>
                 <br>
-                <p>_________________________</p>
+                <p style='margin: 0;'>_________________________</p>
             </div>
         </div>";
 
@@ -386,10 +385,11 @@ class TicketPrintService
     public function generateBulkInvoiceA4Pdf($orders): string
     {
         $html = "<html><head><style>
-            body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-            .page { width: 210mm; height: 297mm; position: relative; }
-            .invoice-half { height: 148.5mm; overflow: hidden; padding: 10mm; box-sizing: border-box; position: relative; }
-            .divider { border-bottom: 1px dashed #000; position: absolute; bottom: 0; left: 5mm; right: 5mm; }
+            @page { margin: 0; }
+            body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff; }
+            .page { width: 210mm; height: 297mm; position: relative; page-break-after: always; }
+            .invoice-half { height: 148mm; overflow: hidden; padding: 5mm 0; box-sizing: border-box; position: relative; }
+            .divider { border-bottom: 1px dashed #000; position: absolute; bottom: 0; left: 10mm; right: 10mm; z-index: 10; }
         </style></head><body>";
         
         $count = 0;
