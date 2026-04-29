@@ -34,15 +34,16 @@
     top: 45%; left: 50%;
     transform: translate(-50%, -50%) rotate(-30deg);
     font-size: 32px; font-weight: 900;
-    color: rgba(0, 128, 0, 0.15);
-    border: 4px solid rgba(0, 128, 0, 0.15);
+    color: #000; /* Forcé en Noir */
+    border: 3px solid #000; /* Bordure Noire */
     padding: 5px 20px;
     text-transform: uppercase;
     z-index: 10;
-    border-radius: 8px;
+    opacity: 0.1; /* Très léger pour ne pas cacher le texte */
+    border-radius: 4px;
   }
   .receipt-wrap .given-change-box {
-    background: #f8f8f8;
+    background: #fff; /* Fond Blanc */
     border: 1px solid #000;
     padding: 3px;
     margin-top: 4px;
@@ -61,11 +62,11 @@
   .receipt-wrap .divider { border-top: 1px dashed #000; margin: 5px 0; }
   .receipt-wrap .divider-solid { border-top: 1px solid #000; margin: 5px 0; }
   .receipt-wrap table    { width: 100%; border-collapse: collapse; }
-  .receipt-wrap td       { padding: 1px 0; vertical-align: top; }
+  .receipt-wrap td       { padding: 1px 0; vertical-align: top; color: #000; }
   .receipt-wrap .td-right { text-align: right; white-space: nowrap; padding-left: 4px; }
-  .receipt-wrap .logo    { max-width: 80px; max-height: 60px; display: block; margin: 0 auto 4px; }
+  .receipt-wrap .logo    { max-width: 80px; max-height: 60px; display: block; margin: 0 auto 4px; filter: grayscale(100%); }
   .receipt-wrap .total-row td { font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 3px; margin-top: 2px; }
-  .receipt-wrap .mod-line { padding-left: 8px; font-size: 9px; }
+  .receipt-wrap .mod-line { padding-left: 8px; font-size: 9px; font-weight: bold; }
   .receipt-wrap .footer-msg { font-size: 11px; font-weight: bold; margin-top: 5px; }
 </style>
 @if(!($is_preview ?? false))
@@ -86,7 +87,7 @@
     @if($receipt['restaurant']['receipt_subtitle'] ?? null)
       <div class="bold" style="font-size:10px; margin-bottom: 1px;">{{ $receipt['restaurant']['receipt_subtitle'] }}</div>
     @endif
-    <div style="font-size: 9px;">
+    <div style="font-size: 9px; font-weight: bold;">
       @if($receipt['restaurant']['address']){{ $receipt['restaurant']['address'] }}<br>@endif
       @if($receipt['restaurant']['phone'])Tél : {{ $receipt['restaurant']['phone'] }}<br>@endif
       @if($receipt['restaurant']['vat_number'])TVA : {{ $receipt['restaurant']['vat_number'] }}<br>@endif
@@ -96,8 +97,8 @@
 
   <div class="divider"></div>
 
-  <table>
-    <tr><td class="bold">RECETTE #{{ $receipt['order']['number'] }}</td><td class="td-right">{{ $receipt['order']['date'] }} {{ $receipt['order']['time'] }}</td></tr>
+  <table style="font-weight: bold;">
+    <tr><td>RECETTE #{{ $receipt['order']['number'] }}</td><td class="td-right">{{ $receipt['order']['date'] }} {{ $receipt['order']['time'] }}</td></tr>
     @if($receipt['order']['table_number'])
       <tr><td>Table: {{ $receipt['order']['table_number'] }}</td><td class="td-right">Couverts: {{ $receipt['order']['covers'] ?: 1 }}</td></tr>
     @endif
@@ -107,20 +108,20 @@
   <div class="divider"></div>
 
   <table>
-    <thead><tr style="border-bottom:1px solid #eee;"><td class="bold">Art</td><td class="td-right bold">Qt</td><td class="td-right bold">PU</td><td class="td-right bold">Tot</td></tr></thead>
+    <thead><tr style="border-bottom:1px solid #000;"><td class="bold">Art</td><td class="td-right bold">Qt</td><td class="td-right bold">PU</td><td class="td-right bold">Tot</td></tr></thead>
     <tbody>
       @foreach($receipt['lines'] as $line)
       <tr>
         <td class="bold">{{ $line['name'] }}</td>
-        <td class="td-right">{{ $line['quantity'] }}</td>
+        <td class="td-right bold">{{ $line['quantity'] }}</td>
         <td class="td-right">{{ number_format($line['unit_price'], 0, '.', ' ') }}</td>
-        <td class="td-right">{{ number_format($line['total'], 0, '.', ' ') }}</td>
+        <td class="td-right bold">{{ number_format($line['total'], 0, '.', ' ') }}</td>
       </tr>
       @foreach($line['modifiers'] as $mod)
         <tr class="mod-line"><td colspan="3">+ {{ $mod['name'] }}</td><td class="td-right">{{ $mod['extra_fmt'] }}</td></tr>
       @endforeach
       @if($line['notes'])
-        <tr><td colspan="4" style="padding-left:5px;font-style:italic;font-size:9px;">Note: {{ $line['notes'] }}</td></tr>
+        <tr><td colspan="4" style="padding-left:5px;font-style:italic;font-size:9px;font-weight:bold;">Note: {{ $line['notes'] }}</td></tr>
       @endif
       @endforeach
     </tbody>
@@ -128,7 +129,7 @@
 
   <div class="divider"></div>
 
-  <table style="font-size:10px; line-height: 1.2;">
+  <table style="font-size:10px; line-height: 1.2; font-weight: bold;">
     <tr><td>Sous-total</td><td class="td-right">{{ $receipt['totals']['subtotal_fmt'] }}</td></tr>
     @if($receipt['totals']['discount'] > 0)
       <tr><td>Remise ({{ $receipt['totals']['discount_reason'] ?: 'Promo' }})</td><td class="td-right">{{ $receipt['totals']['discount_fmt'] }}</td></tr>
@@ -152,8 +153,8 @@
 
   <div class="center">
     <div class="footer-msg">{{ $receipt['footer']['message'] }}</div>
-    @if($receipt['footer']['website'])<div style="font-size:9px;">{{ $receipt['footer']['website'] }}</div>@endif
-    <div style="font-size:8px; margin-top:2px;">{{ now()->format('d/m/Y H:i') }}</div>
+    @if($receipt['footer']['website'])<div style="font-size:9px; font-weight: bold;">{{ $receipt['footer']['website'] }}</div>@endif
+    <div style="font-size:8px; margin-top:2px; font-weight: bold;">{{ now()->format('d/m/Y H:i') }}</div>
   </div>
 </div>
 
