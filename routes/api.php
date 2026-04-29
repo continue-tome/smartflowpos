@@ -83,6 +83,10 @@ Route::get('receipts/{orderId}/kitchen-ticket', [Api\ReceiptController::class, '
 Route::get('expenses/{expense}/receipt',        [Api\ExpenseController::class, 'receipt']);
 Route::get('cash-sessions/{session}/report-preview',   [Api\CashSessionController::class, 'reportPreview']);
 
+// QZ Tray (Public)
+Route::get('qz/certificate', [Api\QzController::class, 'getCertificate']);
+Route::post('qz/sign',        [Api\QzController::class, 'sign']);
+
 // =============================================
 // ROUTES PROTÉGÉES
 // =============================================
@@ -107,6 +111,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('floors/{floor}/tables/{table}', [Api\FloorController::class, 'removeTable']);
 
     // Tables
+    Route::get('tables',          [Api\TableController::class, 'allTables']);
     Route::get('tables/all',      [Api\TableController::class, 'allTables']);
     Route::get('tables/occupied', [Api\TableController::class, 'occupiedTables']);
     Route::put('tables/{table}/status',    [Api\TableController::class, 'updateStatus']);
@@ -249,10 +254,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Paramètres
     Route::get('settings',        [Api\SettingsController::class, 'show']);
-
-    // QZ Tray Signing
-    Route::get('qz/certificate', [Api\QzController::class, 'getCertificate']);
-    Route::post('qz/sign',        [Api\QzController::class, 'sign']);
 
     // Paramètres
     Route::get('settings',        [Api\SettingsController::class, 'show']);
