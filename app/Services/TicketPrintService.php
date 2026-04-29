@@ -567,13 +567,6 @@ class TicketPrintService
         $date = $expense->created_at->format('d/m/Y à H:i');
         $amount = number_format((float)$expense->amount, 0, ',', ' ');
 
-        $qrPath = public_path('img/website_qr.png');
-        $qrBase64 = null;
-        if (file_exists($qrPath)) {
-            $qrData = base64_encode(file_get_contents($qrPath));
-            $qrBase64 = 'data:image/png;base64,' . $qrData;
-        }
-
         return "
         <div style='font-family: Helvetica, sans-serif; color: #000; padding: 15px; border: 1px solid #000; position: relative;'>
             <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;'>
@@ -625,9 +618,7 @@ class TicketPrintService
                         <div style='font-size: 9px; font-weight: bold; text-transform: uppercase;'>Signature de l'Agent</div>
                         <br><br>
                     </td>
-                    <td style='width: 10%; text-align: center;'>
-                        " . ($qrBase64 ? "<img src='{$qrBase64}' style='width: 50px; height: 50px;'>" : "") . "
-                    </td>
+                    <td style='width: 10%;'></td>
                     <td style='width: 45%; border-top: 1px dashed #000; padding-top: 8px; text-align: center;'>
                         <div style='font-size: 9px; font-weight: bold; text-transform: uppercase;'>Validation Direction</div>
                         <br><br>
@@ -650,11 +641,8 @@ class TicketPrintService
         $html = "<html><head><style>
             @page { margin: 10mm; }
             body { margin: 0; padding: 0; background: #fff; }
-            .copy-wrapper { width: 100%; margin-bottom: 10mm; }
-            .divider { border-bottom: 1px dashed #000; margin: 10mm 0; width: 100%; }
+            .copy-wrapper { width: 100%; }
         </style></head><body>
-            <div class='copy-wrapper'>{$content}</div>
-            <div class='divider'></div>
             <div class='copy-wrapper'>{$content}</div>
         </body></html>";
         
