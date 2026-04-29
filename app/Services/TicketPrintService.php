@@ -222,7 +222,7 @@ class TicketPrintService
             </table>
 
             <div style='border-bottom: 1px solid #000; font-weight: bold; margin-top: 8px; margin-bottom: 2px;'>AUTRES MODES</div>
-            <table style='width: 100%;'>";
+            <table style='width: 100%; border-collapse: collapse;'>";
         
         foreach (['card' => 'CARTE', 'wave' => 'WAVE', 'orange_money' => 'ORANGE', 'momo' => 'MOMO'] as $key => $label) {
             $val = $session->{$key . '_total'} ?? 0;
@@ -231,8 +231,25 @@ class TicketPrintService
             }
         }
         
-        $html .= "</table>
-            <div style='margin-top: 15px; border-top: 1px dashed #000; text-align: center; font-weight: bold;'>VISA RESPONSABLE</div>
+        $qrPath = public_path('img/website_qr.png');
+        $qrBase64 = null;
+        if (file_exists($qrPath)) {
+            $qrData = base64_encode(file_get_contents($qrPath));
+            $qrBase64 = 'data:image/png;base64,' . $qrData;
+        }
+
+        $html .= "</table>";
+        
+        if ($qrBase64) {
+            $html .= "<div style='text-align: center; margin-top: 10px;'>
+                <img src='{$qrBase64}' style='width: 50px; height: 50px; filter: grayscale(100%); display: inline-block;'>
+            </div>";
+        }
+
+        $html .= "<div style='margin-top: 10px; border-top: 1px dashed #000; text-align: center; font-weight: bold; font-size: 9px;'>
+                VISA RESPONSABLE<br><br>
+                " . now()->format('d/m/Y H:i') . "
+            </div>
         </div>";
 
         return $html;
@@ -248,12 +265,12 @@ class TicketPrintService
         $deliveryTime = $cakeOrder->delivery_time ? " " . substr($cakeOrder->delivery_time, 0, 5) : '';
 
         // QR Code Base64
-        // $qrPath = public_path('img/website_qr.png');
-        // $qrBase64 = null;
-        // if (file_exists($qrPath)) {
-        //     $qrData = base64_encode(file_get_contents($qrPath));
-        //     $qrBase64 = 'data:image/png;base64,' . $qrData;
-        // }
+        $qrPath = public_path('img/website_qr.png');
+        $qrBase64 = null;
+        if (file_exists($qrPath)) {
+            $qrData = base64_encode(file_get_contents($qrPath));
+            $qrBase64 = 'data:image/png;base64,' . $qrData;
+        }
 
         $html = "
         <div style='font-family: monospace; width: 100%; font-size: 11px; color: #000; line-height: 1.2; background: #fff;'>
@@ -300,9 +317,9 @@ class TicketPrintService
             <div style='text-align: center; margin-top: 15px;'>
                 <div style='font-weight: bold; margin-bottom: 5px;'>Merci de votre confiance !</div>";
         
-        // if ($qrBase64) {
-        //     $html .= "<img src='{$qrBase64}' style='width: 60px; height: 60px; display: inline-block; filter: grayscale(100%);'>";
-        // }
+        if ($qrBase64) {
+            $html .= "<div style='text-align: center; margin-top: 8px;'><img src='{$qrBase64}' style='width: 60px; height: 60px; display: inline-block; filter: grayscale(100%);'></div>";
+        }
 
         $html .= "
                 <div style='font-size: 9px; margin-top: 5px; font-weight: bold;'>" . now()->format('d/m/Y H:i') . "</div>
