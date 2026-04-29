@@ -81,7 +81,7 @@ Route::get('orders/{orderId}/ticket', [Api\ReceiptController::class, 'ticket']);
 Route::get('customer-tabs/{tab}/invoice', [Api\CustomerTabController::class, 'invoice']);
 Route::get('receipts/{orderId}/kitchen-ticket', [Api\ReceiptController::class, 'kitchenTicket']);
 Route::get('expenses/{expense}/receipt',        [Api\ExpenseController::class, 'receipt']);
-Route::get('cash-sessions/{session}/report-preview',   [Api\CashSessionController::class, 'reportPreview']);
+Route::get('cash-sessions/{session}/report',           [Api\CashSessionController::class, 'reportPreview']);
 Route::get('cash-sessions/{session}/report-html',      [Api\CashSessionController::class, 'reportHtml']);
 
 // QZ Tray (Public)
@@ -142,7 +142,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('cash-sessions',                            [Api\CashSessionController::class, 'index']);
     Route::post('cash-sessions/{session}/close',           [Api\CashSessionController::class, 'close']);
     Route::post('cash-sessions/{session}/send-report',     [Api\CashSessionController::class, 'sendReport']);
-    Route::get('cash-sessions/{session}/report',           [Api\CashSessionController::class, 'reportPreview']);
 
     // Dépenses de caisse
     Route::get('expenses',              [Api\ExpenseController::class, 'index']);
