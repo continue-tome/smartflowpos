@@ -425,6 +425,136 @@ class TicketPrintService
         return Pdf::loadHTML($html)->setPaper([0, 0, 226.77, 800])->output();
     }
 
+    /**
+     * Génère le HTML A4 professionnel pour une commande de gâteau
+     */
+    public function cakeOrderA4Html(\App\Models\CakeOrder $cakeOrder): string
+    {
+        $restaurant = $cakeOrder->restaurant;
+        $total = number_format((float)$cakeOrder->total, 0, ',', ' ');
+        $advance = number_format((float)$cakeOrder->advance_paid, 0, ',', ' ');
+        $remaining = number_format((float)$cakeOrder->remaining_amount, 0, ',', ' ');
+        $date = \Carbon\Carbon::parse($cakeOrder->delivery_date)->locale('fr')->isoFormat('LL');
+        $time = $cakeOrder->delivery_time ? substr($cakeOrder->delivery_time, 0, 5) : 'N/A';
+
+        $qrPath = public_path('img/website_qr.png');
+        $qrBase64 = null;
+        if (file_exists($qrPath)) {
+            $qrData = base64_encode(file_get_contents($qrPath));
+            $qrBase64 = 'data:image/png;base64,' . $qrData;
+        }
+
+        return "
+        <div style='font-family: Helvetica, sans-serif; color: #000; padding: 15px; border: 1px solid #000; position: relative;'>
+            <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;'>
+                <tr>
+                    <td style='vertical-align: top;'>
+                        <div style='font-size: 18px; font-weight: bold; text-transform: uppercase;'>{$restaurant->name}</div>
+                        <div style='font-size: 9px; font-weight: bold; margin-top: 2px;'>
+                            {$restaurant->address}<br>
+                            Tél: {$restaurant->phone}
+                        </div>
+                    </td>
+                    <td style='text-align: right; vertical-align: top;'>
+                        <div style='border: 2px solid #000; padding: 5px 10px; font-weight: bold; font-size: 11px; display: inline-block;'>BON DE COMMANDE</div>
+                    </td>
+                </tr>
+            </table>
+
+            <div style='font-size: 14px; font-weight: bold; margin-bottom: 2px;'>CONFIRMATION DE COMMANDE GÂTEAU</div>
+            <div style='font-size: 10px; font-weight: bold; margin-bottom: 15px;'>Réf: #{$cakeOrder->order_number} | Emis le " . date('d/m/Y à H:i') . "</div>
+
+            <table style='width: 100%; border-collapse: collapse; margin-bottom: 15px;'>
+                <tr>
+                    <td style='width: 48%; border: 1px solid #000; padding: 8px; vertical-align: top;'>
+                        <div style='font-size: 8px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;'>Client</div>
+                        <div style='font-size: 11px; font-weight: bold;'>{$cakeOrder->customer_name}</div>
+                        <div style='font-size: 10px; font-weight: bold;'>Tél: {$cakeOrder->customer_phone}</div>
+                    </td>
+                    <td style='width: 4%;'></td>
+                    <td style='width: 48%; border: 1px solid #000; padding: 8px; vertical-align: top;'>
+                        <div style='font-size: 8px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;'>Livraison Prévue</div>
+                        <div style='font-size: 11px; font-weight: bold;'>{$date}</div>
+                        <div style='font-size: 10px; font-weight: bold;'>à {$time}</div>
+                    </td>
+                </tr>
+            </table>
+
+            <table style='width: 100%; border-collapse: collapse; margin-bottom: 10px;'>
+                <thead>
+                    <tr>
+                        <th style='background: #000; color: #fff; padding: 6px; text-align: left; font-size: 9px; text-transform: uppercase;'>Description</th>
+                        <th style='background: #000; color: #fff; padding: 6px; text-align: center; font-size: 9px; text-transform: uppercase; width: 60px;'>Qté</th>
+                        <th style='background: #000; color: #fff; padding: 6px; text-align: right; font-size: 9px; text-transform: uppercase; width: 100px;'>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style='padding: 8px 6px; border-bottom: 1px solid #000; font-size: 11px; font-weight: bold;'>Gâteau Personnalisé</td>
+                        <td style='padding: 8px 6px; border-bottom: 1px solid #000; font-size: 11px; text-align: center;'>1</td>
+                        <td style='padding: 8px 6px; border-bottom: 1px solid #000; font-size: 11px; text-align: right; font-weight: bold;'>{$total} FCFA</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style='border: 1px solid #000; padding: 8px; margin-bottom: 15px;'>
+                <div style='font-size: 8px; font-weight: bold; text-transform: uppercase; margin-bottom: 2px;'>Détails & Personnalisation</div>
+                <div style='font-size: 10px; font-weight: bold;'>" . nl2br($cakeOrder->notes ?: 'Gâteau personnalisé.') . "</div>
+            </div>
+
+            <table style='width: 250px; margin-left: auto; border-collapse: collapse;'>
+                <tr>
+                    <td style='padding: 4px 0; font-size: 10px; font-weight: bold; text-align: right; padding-right: 15px;'>Sous-total</td>
+                    <td style='padding: 4px 0; font-size: 10px; font-weight: bold; text-align: right;'>{$total} FCFA</td>
+                </tr>
+                <tr>
+                    <td style='padding: 4px 0; font-size: 10px; font-weight: bold; text-align: right; padding-right: 15px;'>Acompte</td>
+                    <td style='padding: 4px 0; font-size: 10px; font-weight: bold; text-align: right;'>- {$advance} FCFA</td>
+                </tr>
+                <tr style='background: #000; color: #fff;'>
+                    <td style='padding: 8px 15px; font-size: 12px; font-weight: bold; text-align: right;'>RESTE À PAYER</td>
+                    <td style='padding: 8px 10px; font-size: 12px; font-weight: bold; text-align: right;'>{$remaining} FCFA</td>
+                </tr>
+            </table>
+
+            <div style='margin-top: 20px; width: 100%;'>
+                <table style='width: 100%;'>
+                    <tr>
+                        <td style='width: 40%; border-top: 1px dashed #000; padding-top: 5px; text-align: center; font-size: 8px; font-weight: bold;'>Signature Client</td>
+                        <td style='width: 20%; text-align: center;'>
+                            " . ($qrBase64 ? "<img src='{$qrBase64}' style='width: 50px; height: 50px; filter: grayscale(100%);'>" : "") . "
+                        </td>
+                        <td style='width: 40%; border-top: 1px dashed #000; padding-top: 5px; text-align: center; font-size: 8px; font-weight: bold;'>Cachet Établissement</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style='margin-top: 10px; text-align: center; font-size: 7px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px;'>
+                #{$cakeOrder->order_number} • Document certifié par Omega POS • " . now()->format('d/m/y H:i') . "
+            </div>
+        </div>";
+    }
+
+    /**
+     * Génère un PDF A4 avec 2 copies pour une commande de gâteau
+     */
+    public function generateCakeOrderA4Pdf(\App\Models\CakeOrder $cakeOrder): string
+    {
+        $content = $this->cakeOrderA4Html($cakeOrder);
+        $html = "<html><head><style>
+            @page { margin: 10mm; }
+            body { margin: 0; padding: 0; background: #fff; }
+            .copy-wrapper { width: 100%; margin-bottom: 10mm; }
+            .divider { border-bottom: 1px dashed #000; margin: 10mm 0; width: 100%; }
+        </style></head><body>
+            <div class='copy-wrapper'>{$content}</div>
+            <div class='divider'></div>
+            <div class='copy-wrapper'>{$content}</div>
+        </body></html>";
+        
+        return Pdf::loadHTML($html)->setPaper('a4')->output();
+    }
+
     public function generateBulkInvoiceA4Pdf($orders): string
     {
         $html = "<html><head><style>
