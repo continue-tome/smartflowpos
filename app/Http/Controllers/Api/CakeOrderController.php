@@ -245,42 +245,42 @@ class CakeOrderController extends Controller
             <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
             <style>
                 @page { margin: 0; }
-                body { font-family: Helvetica, sans-serif; color: #000; margin: 0; padding: 0; background: #fff; }
-                .container { padding: 40px; }
-                .header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
-                .restaurant-name { font-size: 24px; font-weight: bold; color: #000; text-transform: uppercase; }
-                .restaurant-info { font-size: 10px; color: #000; margin-top: 5px; font-weight: bold; }
+                body { font-family: Helvetica, sans-serif; color: #000; margin: 0; padding: 0; background: #fff; line-height: 1.1; }
+                .container { padding: 25px; }
+                .header { border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+                .restaurant-name { font-size: 20px; font-weight: bold; color: #000; text-transform: uppercase; }
+                .restaurant-info { font-size: 9px; color: #000; margin-top: 3px; font-weight: bold; }
                 
-                .doc-type { float: right; border: 2px solid #000; color: #000; padding: 10px 20px; font-weight: bold; font-size: 14px; margin-top: -60px; text-transform: uppercase; }
+                .doc-type { float: right; border: 2px solid #000; color: #000; padding: 6px 12px; font-weight: bold; font-size: 12px; margin-top: -45px; text-transform: uppercase; }
                 
-                .title-section { margin-top: 20px; }
-                .doc-title { font-size: 18px; font-weight: bold; color: #000; border-bottom: 1px solid #000; display: inline-block; padding-bottom: 4px; }
-                .doc-ref { font-size: 12px; color: #000; margin-top: 8px; font-weight: bold; }
+                .title-section { margin-top: 10px; }
+                .doc-title { font-size: 16px; font-weight: bold; color: #000; border-bottom: 1px solid #000; display: inline-block; padding-bottom: 2px; }
+                .doc-ref { font-size: 11px; color: #000; margin-top: 4px; font-weight: bold; }
                 
-                .info-grid { width: 100%; margin-top: 30px; border-collapse: collapse; }
-                .info-box { width: 48%; border: 1px solid #000; padding: 15px; vertical-align: top; }
-                .info-label { font-size: 9px; font-weight: bold; color: #000; text-transform: uppercase; margin-bottom: 8px; }
-                .info-value { font-size: 13px; font-weight: bold; color: #000; }
-                .info-sub { font-size: 11px; color: #000; margin-top: 4px; font-weight: bold; }
+                .info-grid { width: 100%; margin-top: 15px; border-collapse: collapse; }
+                .info-box { width: 48%; border: 1px solid #000; padding: 10px; vertical-align: top; }
+                .info-label { font-size: 8px; font-weight: bold; color: #000; text-transform: uppercase; margin-bottom: 4px; }
+                .info-value { font-size: 12px; font-weight: bold; color: #000; }
+                .info-sub { font-size: 10px; color: #000; margin-top: 2px; font-weight: bold; }
 
-                .items-table { width: 100%; margin-top: 30px; border-collapse: collapse; }
-                .items-table th { background: #000; color: #fff; padding: 12px; text-align: left; font-size: 10px; text-transform: uppercase; }
-                .items-table td { padding: 15px 12px; border-bottom: 1px solid #000; font-size: 12px; color: #000; }
+                .items-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+                .items-table th { background: #000; color: #fff; padding: 8px; text-align: left; font-size: 9px; text-transform: uppercase; }
+                .items-table td { padding: 10px 8px; border-bottom: 1px solid #000; font-size: 11px; color: #000; }
                 
-                .notes-section { margin-top: 30px; padding: 15px; border: 1px solid #000; }
-                .notes-title { font-size: 10px; font-weight: bold; color: #000; text-transform: uppercase; margin-bottom: 5px; }
-                .notes-text { font-size: 11px; font-weight: bold; color: #000; }
+                .notes-section { margin-top: 15px; padding: 10px; border: 1px solid #000; }
+                .notes-title { font-size: 9px; font-weight: bold; color: #000; text-transform: uppercase; margin-bottom: 3px; }
+                .notes-text { font-size: 10px; font-weight: bold; color: #000; }
 
-                .totals-section { width: 100%; margin-top: 40px; }
+                .totals-section { width: 100%; margin-top: 20px; }
                 .total-row { padding: 8px 0; font-size: 12px; font-weight: bold; }
                 .total-label { text-align: right; padding-right: 20px; color: #000; }
                 .total-value { text-align: right; width: 150px; font-weight: bold; color: #000; }
                 .final-balance { background: #000; color: #fff; }
                 .final-balance td { padding: 15px 20px; font-size: 16px; }
 
-                .footer { position: fixed; bottom: 40px; width: 100%; text-align: center; font-size: 9px; color: #000; border-top: 1px solid #000; padding-top: 20px; font-weight: bold; }
-                .signature-table { width: 100%; margin-top: 60px; }
-                .signature-box { border-top: 1px dashed #000; padding-top: 10px; text-align: center; font-size: 10px; color: #000; width: 40%; font-weight: bold; }
+                .footer { position: fixed; bottom: 30px; width: 100%; text-align: center; font-size: 8px; color: #000; border-top: 1px solid #000; padding-top: 10px; font-weight: bold; }
+                .signature-table { width: 100%; margin-top: 30px; }
+                .signature-box { border-top: 1px dashed #000; padding-top: 6px; text-align: center; font-size: 9px; color: #000; width: 40%; font-weight: bold; }
             </style>
         </head>
         <body>

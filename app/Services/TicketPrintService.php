@@ -159,26 +159,25 @@ class TicketPrintService
         $id = str_pad($expense->id, 4, '0', STR_PAD_LEFT);
 
         return "
-        <div style='font-family: monospace; width: 100%; font-size: 12px; color: #000; line-height: 1.25;'>
-            <div style='text-align: center; font-weight: bold; border-bottom: 1px dashed #000;'>" . strtoupper($restaurant->name) . "</div>
-            <div style='text-align: center; font-weight: bold; margin: 4px 0;'>RECUS DEPENSE #{$id}</div>
+        <div style='font-family: monospace; width: 100%; font-size: 11px; color: #000; line-height: 1.1;'>
+            <div style='text-align: center; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 2px;'>" . strtoupper($restaurant->name) . "</div>
+            <div style='text-align: center; font-weight: bold; margin: 3px 0;'>DEPENSE #{$id}</div>
             
-            <div style='font-size: 11px; margin-bottom: 5px;'>
-                <b>DATE:</b> {$date}<br>
-                <b>AGENT:</b> " . strtoupper($expense->user->first_name) . "
+            <div style='font-size: 10px; margin-bottom: 3px;'>
+                <b>DATE:</b> {$date} | <b>AGENT:</b> " . strtoupper($expense->user->first_name) . "
             </div>
 
-            <div style='margin-bottom: 5px;'>
+            <div style='margin-bottom: 3px;'>
                 <b>MOTIF:</b> " . strtoupper($expense->description) . "<br>
                 <b>POUR:</b> " . strtoupper($expense->beneficiary ?: 'N/A') . "
             </div>
 
-            <div style='text-align: center; border: 2px solid #000; padding: 5px; font-size: 18px; font-weight: bold;'>
+            <div style='text-align: center; border: 1px solid #000; padding: 3px; font-size: 16px; font-weight: bold;'>
                 " . number_format($expense->amount, 0, ',', ' ') . " F
             </div>
 
-            <div style='margin-top: 20px; border-top: 1px solid #000; padding-top: 3px; text-align: center; font-size: 10px; font-weight: bold;'>
-                SIGNATURE BENEFICIAIRE<br><br><br>
+            <div style='margin-top: 10px; border-top: 1px dashed #000; padding-top: 2px; text-align: center; font-size: 9px; font-weight: bold;'>
+                SIGNATURE BENEFICIAIRE<br><br>
                 ...........................
             </div>
         </div>";
@@ -194,16 +193,16 @@ class TicketPrintService
         $close = $session->closed_at ? $session->closed_at->format('d/m H:i') : 'ACTIF';
 
         $html = "
-        <div style='font-family: monospace; width: 100%; font-size: 11px; color: #000; line-height: 1.25;'>
-            <div style='text-align: center; font-weight: bold; font-size: 13px;'>" . strtoupper($restaurant->name) . "</div>
-            <div style='text-align: center; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 4px; font-weight: bold;'>RAPPORT CLOTURE #{$session->id}</div>
+        <div style='font-family: monospace; width: 100%; font-size: 10px; color: #000; line-height: 1.1;'>
+            <div style='text-align: center; font-weight: bold; font-size: 12px;'>" . strtoupper($restaurant->name) . "</div>
+            <div style='text-align: center; border-bottom: 1px solid #000; padding-bottom: 1px; margin-bottom: 3px; font-weight: bold;'>CLOTURE #{$session->id}</div>
             
-            <div style='margin-bottom: 5px;'>
-                <b>CAISSIER:</b> " . strtoupper($session->user->first_name) . "<br>
+            <div style='margin-bottom: 3px;'>
+                <b>AGENT:</b> " . strtoupper($session->user->first_name) . "<br>
                 <b>PERIODE:</b> {$open} au {$close}
             </div>
 
-            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-bottom: 2px;'>FLUX CASH</div>
+            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-bottom: 1px;'>FLUX CASH</div>
             <table style='width: 100%; border-collapse: collapse;'>
                 <tr><td>OUVERTURE:</td><td style='text-align: right;'>" . number_format($session->opening_amount, 0, ',', ' ') . "</td></tr>
                 <tr><td>VENTES (+):</td><td style='text-align: right;'>" . number_format($session->cash_total, 0, ',', ' ') . "</td></tr>
@@ -211,17 +210,17 @@ class TicketPrintService
                 <tr style='font-weight: bold; border-top: 1px solid #000;'><td>THEORIQUE:</td><td style='text-align: right;'>" . number_format($session->expected_amount, 0, ',', ' ') . "</td></tr>
             </table>
 
-            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-top: 8px; margin-bottom: 2px;'>REEL</div>
+            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-top: 4px; margin-bottom: 1px;'>REEL</div>
             <table style='width: 100%;'>
                 <tr><td>BANQUE:</td><td style='text-align: right;'>" . number_format($session->amount_to_bank, 0, ',', ' ') . "</td></tr>
                 <tr><td>CAISSE:</td><td style='text-align: right;'>" . number_format($session->remaining_amount, 0, ',', ' ') . "</td></tr>
-                <tr style='font-weight: bold; font-size: 13px; border-top: 1px solid #000;'>
+                <tr style='font-weight: bold; font-size: 11px; border-top: 1px solid #000;'>
                     <td>ECART:</td>
                     <td style='text-align: right;'>" . ($session->difference > 0 ? '+' : '') . number_format($session->difference, 0, ',', ' ') . "</td>
                 </tr>
             </table>
 
-            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-top: 8px; margin-bottom: 2px;'>AUTRES MODES</div>
+            <div style='border-bottom: 1px solid #000; font-weight: bold; margin-top: 4px; margin-bottom: 1px;'>AUTRES MODES</div>
             <table style='width: 100%; border-collapse: collapse;'>";
         
         foreach (['card' => 'CARTE', 'wave' => 'WAVE', 'orange_money' => 'ORANGE', 'momo' => 'MOMO'] as $key => $label) {
@@ -241,14 +240,13 @@ class TicketPrintService
         $html .= "</table>";
         
         if ($qrBase64) {
-            $html .= "<div style='text-align: center; margin-top: 10px;'>
-                <img src='{$qrBase64}' style='width: 50px; height: 50px; filter: grayscale(100%); display: inline-block;'>
+            $html .= "<div style='text-align: center; margin-top: 5px;'>
+                <img src='{$qrBase64}' style='width: 40px; height: 40px; filter: grayscale(100%); display: inline-block;'>
             </div>";
         }
 
-        $html .= "<div style='margin-top: 10px; border-top: 1px dashed #000; text-align: center; font-weight: bold; font-size: 9px;'>
-                VISA RESPONSABLE<br><br>
-                " . now()->format('d/m/Y H:i') . "
+        $html .= "<div style='margin-top: 5px; border-top: 1px dashed #000; text-align: center; font-weight: bold; font-size: 8px;'>
+                VISA RESPONSABLE • " . now()->format('d/m/y H:i') . "
             </div>
         </div>";
 
@@ -273,18 +271,17 @@ class TicketPrintService
         }
 
         $html = "
-        <div style='font-family: monospace; width: 100%; font-size: 11px; color: #000; line-height: 1.2; background: #fff;'>
+        <div style='font-family: monospace; width: 100%; font-size: 10px; color: #000; line-height: 1.1; background: #fff;'>
             <div style='text-align: center;'>
-                <div style='font-size: 14px; font-weight: bold;'>" . strtoupper($restaurant->name) . "</div>
-                <div style='font-weight: bold; border-top: 1px dashed #000; border-bottom: 1px dashed #000; margin: 5px 0; padding: 3px 0;'>
-                    COMMANDE GATEAU #{$cakeOrder->order_number}
+                <div style='font-size: 13px; font-weight: bold;'>" . strtoupper($restaurant->name) . "</div>
+                <div style='font-weight: bold; border-top: 1px dashed #000; border-bottom: 1px dashed #000; margin: 3px 0; padding: 2px 0;'>
+                    GATEAU #{$cakeOrder->order_number}
                 </div>
             </div>
             
-            <div style='margin: 8px 0; font-weight: bold;'>
+            <div style='margin: 4px 0; font-weight: bold;'>
                 CLIENT: " . strtoupper($cakeOrder->customer_name) . "<br>
-                TEL: {$cakeOrder->customer_phone}<br>
-                LIVRER LE: <span style='border: 1px solid #000; padding: 1px 4px;'>{$deliveryDate}{$deliveryTime}</span>
+                TEL: {$cakeOrder->customer_phone} | LE: {$deliveryDate}{$deliveryTime}
             </div>
 
             <div style='border-bottom: 1px solid #000; font-weight: bold; margin-bottom: 3px;'>ARTICLES</div>";
