@@ -58,6 +58,7 @@ class TicketPrintService
             'restaurant' => [
                 'name' => $restaurant->name, 
                 'logo' => $restaurant->logo ? asset('storage/' . $restaurant->logo) : null, 
+                'logo_raw' => $restaurant->logo,
                 'address' => $restaurant->address, 
                 'phone' => $restaurant->phone, 
                 'email' => $restaurant->email, 

@@ -81,8 +81,19 @@
   @endif
   
   <div class="center">
-    @if(($receipt['footer']['show_logo'] ?? true) && $receipt['restaurant']['logo'])
-      <img src="{{ $receipt['restaurant']['logo'] }}" class="logo" alt="" onerror="this.style.display='none';" style="filter: grayscale(100%); -webkit-filter: grayscale(100%);">
+    @php
+      $logoPath = null;
+      if ($receipt['restaurant']['logo_raw'] ?? null) {
+          $path = storage_path('app/public/' . $receipt['restaurant']['logo_raw']);
+          if (file_exists($path)) {
+              $logoData = base64_encode(file_get_contents($path));
+              $logoPath = 'data:image/' . pathinfo($path, PATHINFO_EXTENSION) . ';base64,' . $logoData;
+          }
+      }
+    @endphp
+
+    @if(($receipt['footer']['show_logo'] ?? true) && $logoPath)
+      <img src="{{ $logoPath }}" class="logo" alt="" style="filter: grayscale(100%); -webkit-filter: grayscale(100%);">
     @endif
     <div class="bold xlarge">{{ $receipt['restaurant']['name'] }}</div>
     @if($receipt['restaurant']['receipt_subtitle'] ?? null)
@@ -155,11 +166,20 @@
 
   <div class="center">
     <div class="footer-msg">{{ $receipt['footer']['message'] }}</div>
-    @if($receipt['footer']['website'])<div style="font-size:9px; font-weight: bold;">{{ $receipt['footer']['website'] }}</div>@endif
-    
+    @php
+      $qrPath = public_path('img/website_qr.png');
+      $qrBase64 = null;
+      if (file_exists($qrPath)) {
+          $qrData = base64_encode(file_get_contents($qrPath));
+          $qrBase64 = 'data:image/png;base64,' . $qrData;
+      }
+    @endphp
+
+    @if($qrBase64)
     <div style="margin-top: 8px; text-align: center;">
-      <img src="{{ asset('img/website_qr.png') }}" style="width: 60px; height: 60px; filter: grayscale(100%); display: inline-block;">
+      <img src="{{ $qrBase64 }}" style="width: 60px; height: 60px; filter: grayscale(100%); display: inline-block;">
     </div>
+    @endif
 
     <div style="font-size:8px; margin-top:2px; font-weight: bold;">{{ now()->format('d/m/Y H:i') }}</div>
   </div>
