@@ -56,6 +56,16 @@ class TicketPrintService
             'change_fmt' => $p->change_given ? $formatAmount($p->change_given) : null
         ])->toArray();
 
+        $isGozem = ($order->type === 'gozem');
+        $displaySubtotal = $order->subtotal;
+        $displayDiscount = $order->discount_amount;
+        $discountLabel   = "REMISE";
+
+        if ($isGozem) {
+            $displaySubtotal = $order->total;
+            $displayDiscount = 0;
+        }
+
         return [
             'restaurant' => [
                 'name' => $restaurant->name, 
@@ -83,11 +93,11 @@ class TicketPrintService
             ],
             'lines' => $lines,
             'totals' => [
-                'subtotal' => $order->subtotal, 
-                'subtotal_fmt' => $formatAmount($order->subtotal), 
-                'discount' => $order->discount_amount, 
-                'discount_fmt' => $order->discount_amount > 0 ? '-' . $formatAmount($order->discount_amount) : null, 
-                'discount_reason' => $order->discount_reason, 
+                'subtotal' => $displaySubtotal, 
+                'subtotal_fmt' => $formatAmount($displaySubtotal), 
+                'discount' => $displayDiscount, 
+                'discount_fmt' => $displayDiscount > 0 ? '-' . $formatAmount($displayDiscount) : null, 
+                'discount_reason' => $discountLabel, 
                 'vat_rate' => $config['default_vat_rate'] ?? 18, 
                 'vat_amount' => $order->vat_amount, 
                 'vat_fmt' => $formatAmount($order->vat_amount), 
@@ -123,7 +133,15 @@ class TicketPrintService
         if ($items->isEmpty()) return '';
 
         $restaurant = $order->restaurant;
-        $tableLabel = ($order->table instanceof \App\Models\Table) ? "T" . $order->table->number : strtoupper((string)$order->type);
+        $typeMap = [
+            'dine_in'  => 'SUR PLACE',
+            'takeaway' => 'EMPORTER',
+            'delivery' => 'LIVRAISON',
+            'gozem'    => 'GOZEM'
+        ];
+        $tableLabel = ($order->table instanceof \App\Models\Table) 
+            ? "TABLE " . $order->table->number 
+            : ($typeMap[$order->type] ?? strtoupper($order->type));
         $date = now()->format('d/m H:i');
 
         return "
@@ -131,7 +149,7 @@ class TicketPrintService
             <div style='text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 2px;'>
                 " . strtoupper($restaurant->name) . " - " . strtoupper($this->routing->destinationLabel($destination)) . "
             </div>
-            <div style='text-align: center; font-size: 11px;'>#{$order->order_number} | {$date}</div>
+            <div style='text-align: center; font-size: 11px;'>{$order->order_number} | {$date}</div>
 
             <div style='border: 2px solid #000; text-align: center; font-size: 24px; font-weight: bold; margin: 3px 0;'>
                 {$tableLabel}
@@ -163,7 +181,7 @@ class TicketPrintService
         return "
         <div style='font-family: monospace; width: 100%; font-size: 11px; color: #000; line-height: 1.1;'>
             <div style='text-align: center; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 2px;'>" . strtoupper($restaurant->name) . "</div>
-            <div style='text-align: center; font-weight: bold; margin: 3px 0;'>DEPENSE #{$id}</div>
+            <div style='text-align: center; font-weight: bold; margin: 3px 0;'>BON DE DEPENSE</div>
             
             <div style='font-size: 10px; margin-bottom: 3px;'>
                 <b>DATE:</b> {$date} | <b>AGENT:</b> " . strtoupper($expense->user->first_name) . "
@@ -197,7 +215,7 @@ class TicketPrintService
         $html = "
         <div style='font-family: monospace; width: 100%; font-size: 10px; color: #000; line-height: 1.1;'>
             <div style='text-align: center; font-weight: bold; font-size: 12px;'>" . strtoupper($restaurant->name) . "</div>
-            <div style='text-align: center; border-bottom: 1px solid #000; padding-bottom: 1px; margin-bottom: 3px; font-weight: bold;'>CLOTURE #{$session->id}</div>
+            <div style='text-align: center; border-bottom: 1px solid #000; padding-bottom: 1px; margin-bottom: 3px; font-weight: bold;'>CLOTURE</div>
             
             <div style='margin-bottom: 3px;'>
                 <b>AGENT:</b> " . strtoupper($session->user->first_name) . "<br>
@@ -532,7 +550,7 @@ class TicketPrintService
             </div>
 
             <div style='margin-top: 10px; text-align: center; font-size: 7px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px;'>
-                #{$cakeOrder->order_number} • Document certifié par Omega POS • " . now()->format('d/m/y H:i') . "
+                Document certifié par Omega POS • " . now()->format('d/m/y H:i') . "
             </div>
         </div>";
     }
@@ -624,7 +642,7 @@ class TicketPrintService
             </table>
 
             <div style='margin-top: 15px; text-align: center; font-size: 7px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px;'>
-                ID Caisse: #" . ($expense->cash_session_id ?: 'N/A') . " • Établi par: " . ($expense->user->first_name ?? 'Inconnu') . " • " . now()->format('d/m/y H:i') . "
+                Établi par: " . ($expense->user->first_name ?? 'Inconnu') . " • " . now()->format('d/m/y H:i') . "
             </div>
         </div>";
     }
@@ -766,7 +784,7 @@ class TicketPrintService
             <div style='margin-top: 20px; text-align: center;'>
                 <p style='font-size: 11px; margin-bottom: 10px;'>Veuillez solder votre ardoise dans les plus brefs délais. Merci !</p>
                 " . ($qrBase64 ? "<img src='{$qrBase64}' style='width: 70px; height: 70px; filter: grayscale(100%);'>" : "") . "
-                <p style='font-size: 8px; font-weight: bold; margin-top: 5px;'>ID ARDOISE: #{$tab->id} • Généré le " . now()->format('d/m/Y H:i') . "</p>
+                <p style='font-size: 8px; font-weight: bold; margin-top: 5px;'>Généré le " . now()->format('d/m/Y H:i') . "</p>
             </div>
         </div>";
 
@@ -781,5 +799,14 @@ class TicketPrintService
     }
 
     private function methodLabel(string $method): string { return match($method) { 'cash' => 'Espèces', 'card' => 'Carte', 'wave' => 'Wave', 'orange_money' => 'Orange', 'momo' => 'Momo', default => 'Autre' }; }
-    private function typeLabel(string $type): string { return match($type) { 'dine_in' => 'Sur place', 'takeaway' => 'À emporter', 'delivery' => 'Livraison', default => $type }; }
+    private function typeLabel(string $type): string { 
+        return match($type) { 
+            'dine_in' => 'Sur place', 
+            'takeaway' => 'À emporter', 
+            'delivery' => 'Livraison', 
+            'gozem' => 'Gozem',
+            'cakes' => 'Gâteaux',
+            default => $type 
+        }; 
+    }
 }

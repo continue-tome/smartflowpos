@@ -28,10 +28,10 @@ class ReportController extends Controller
             ->selectRaw("$dateField as date, COUNT(*) as orders, SUM(total) as revenue")
             ->groupBy('date')->orderBy('date')->get();
 
-        $byMethod = Payment::where(function($q) use ($restaurantId) {
-                $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
-                  ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
-            })
+        $byMethod = Payment::where(function ($q) use ($restaurantId) {
+            $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
+                ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
+        })
             ->whereBetween('created_at', [$request->from, $request->to . ' 23:59:59'])
             ->selectRaw('method, SUM(amount) as total, COUNT(*) as count')->groupBy('method')->get();
 
@@ -83,10 +83,10 @@ class ReportController extends Controller
         $restaurantId = $request->user()->restaurant_id;
 
         $sessions = \App\Models\CashSession::with('user:id,first_name,last_name')->where('restaurant_id', $restaurantId)->whereDate('opened_at', $date)->get();
-        $payments = Payment::where(function($q) use ($restaurantId) {
-                $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
-                  ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
-            })
+        $payments = Payment::where(function ($q) use ($restaurantId) {
+            $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
+                ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
+        })
             ->whereDate('created_at', $date)
             ->selectRaw('method, SUM(amount) as total, COUNT(*) as count')->groupBy('method')->get();
 
@@ -98,13 +98,13 @@ class ReportController extends Controller
         $restaurantId = $request->user()->restaurant_id;
         $today = today()->toDateString();
 
-        $revenueToday = Payment::where(function($q) use ($restaurantId) {
-                $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
-                  ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
-            })
+        $revenueToday = Payment::where(function ($q) use ($restaurantId) {
+            $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
+                ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
+        })
             ->whereDate('created_at', $today)
             ->sum('amount');
-            
+
         $ordersToday = Order::where('restaurant_id', $restaurantId)->where('status', 'paid')->whereDate('paid_at', $today)->count();
         $coversToday = Order::where('restaurant_id', $restaurantId)->where('status', 'paid')->whereDate('paid_at', $today)->sum('covers');
         $avgTicket = $ordersToday > 0 ? (Order::where('restaurant_id', $restaurantId)->where('status', 'paid')->whereDate('paid_at', $today)->sum('total')) / $ordersToday : 0;
@@ -150,13 +150,13 @@ class ReportController extends Controller
         }
 
         return response()->json([
-            'revenue_today'   => round($revenueToday, 2), 
+            'revenue_today'   => round($revenueToday, 2),
             'pending_revenue' => round($pendingRevenue, 2),
             'orders_today'    => $ordersToday,
             'active_orders'   => $activeOrders,
-            'covers_today'    => $coversToday, 
+            'covers_today'    => $coversToday,
             'avg_ticket'      => round($avgTicket, 2),
-            'growth_percent'  => round($growth, 1), 
+            'growth_percent'  => round($growth, 1),
             'tables'          => $tablesStats,
             'by_destination'  => $byDestination,
             'hourly_sales'    => $chartData,
@@ -184,20 +184,20 @@ class ReportController extends Controller
             ->get();
 
         $allItems = $items;
-        
+
         // Résumé global par destination pour les onglets
-        $summaryByDestination = $allItems->groupBy(function($item) {
-                return $item->product?->category?->destination ?? 'kitchen';
-            })->map(function($group) {
-                return [
-                    'revenue' => (float) $group->sum('subtotal'),
-                    'count'   => $group->sum('quantity')
-                ];
-            });
+        $summaryByDestination = $allItems->groupBy(function ($item) {
+            return $item->product?->category?->destination ?? 'kitchen';
+        })->map(function ($group) {
+            return [
+                'revenue' => (float) $group->sum('subtotal'),
+                'count'   => $group->sum('quantity')
+            ];
+        });
 
         // Filtrer par destination via la collection (plus sûr si les joins SQL ont des ambiguïtés)
         if ($request->destination && $request->destination !== 'all') {
-            $items = $items->filter(function($item) use ($request) {
+            $items = $items->filter(function ($item) use ($request) {
                 return ($item->product?->category?->destination ?? 'kitchen') === $request->destination;
             });
         }
@@ -225,7 +225,7 @@ class ReportController extends Controller
         $res = $this->departmentSales($request);
         $data = $res->getData();
         $restaurant = $request->user()->restaurant;
-        
+
         $html = view('reports.department-sales', [
             'data'       => $data,
             'restaurant' => $restaurant,
@@ -247,13 +247,13 @@ class ReportController extends Controller
         $restaurantId = $request->user()->restaurant_id;
 
         // 1. Résumé Global (Paiements)
-        $payments = Payment::where(function($q) use ($restaurantId) {
-                $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
-                  ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
-            })
+        $payments = Payment::where(function ($q) use ($restaurantId) {
+            $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
+                ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
+        })
             ->whereDate('created_at', $date)
             ->selectRaw('method, SUM(amount) as total, COUNT(*) as count')->groupBy('method')->get();
-            
+
         $totalRevenue = $payments->sum('total');
 
         // 2. Répartition par Destination (Restaurant/Bar/Pizza/Cuisine)
@@ -306,7 +306,7 @@ class ReportController extends Controller
     {
         $date = $request->date ?? today()->toDateString();
         $restaurant = $request->user()->restaurant;
-        
+
         $pdfContent = $reportService->generateDailyReport($date, $restaurant);
 
         return response($pdfContent)
@@ -320,9 +320,9 @@ class ReportController extends Controller
             'from' => 'required|date',
             'to' => 'required|date|after_or_equal:from'
         ]);
-        
+
         $restaurantId = $request->user()->restaurant_id;
-        
+
         $totals = Order::where('restaurant_id', $restaurantId)
             ->where('status', 'paid')
             ->whereBetween('paid_at', [$request->from, $request->to . ' 23:59:59'])
@@ -330,7 +330,7 @@ class ReportController extends Controller
             ->first();
 
         // On peut aussi inclure les gâteaux si nécessaire, mais souvent la TVA dépend de la facturation standard
-        
+
         return response()->json([
             'from' => $request->from,
             'to' => $request->to,

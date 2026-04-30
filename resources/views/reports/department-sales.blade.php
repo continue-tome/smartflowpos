@@ -1,3 +1,34 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -89,7 +120,7 @@
                 <td>{{ \Carbon\Carbon::parse($item->created_at)->format('H:i') }}</td>
                 <td>
                     <div class="product-name">{{ $item->product->name }}</div>
-                    <div class="table-id">ID: #{{ $item->id }}</div>
+                    <!-- ID removed -->
                 </td>
                 <td>
                     <span style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; font-size: 8px;">

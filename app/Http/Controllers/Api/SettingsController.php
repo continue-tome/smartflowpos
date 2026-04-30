@@ -57,7 +57,7 @@ class SettingsController extends Controller
 
     public function getConfig(Request $request)
     {
-        $defaults = ['receipt_logo' => true, 'receipt_footer' => 'Merci de votre visite !', 'receipt_width' => '80mm', 'printer_ip' => null, 'kitchen_printer_ip' => null, 'bar_printer_ip' => null, 'pizza_printer_ip' => null, 'printer_port' => 9100, 'default_vat_rate' => 18, 'auto_print_receipt' => true, 'kitchen_alert_sound' => true, 'order_timeout_alert' => 15, 'currency_symbol' => 'FCFA', 'currency_position' => 'after'];
+        $defaults = ['receipt_logo' => true, 'receipt_footer' => 'Merci de votre visite !', 'receipt_width' => '80mm', 'printer_ip' => null, 'kitchen_printer_ip' => null, 'bar_printer_ip' => null, 'pizza_printer_ip' => null, 'printer_port' => 9100, 'default_vat_rate' => 18, 'auto_print_receipt' => true, 'kitchen_alert_sound' => true, 'order_timeout_alert' => 15, 'currency_symbol' => 'FCFA', 'currency_position' => 'after', 'gozem_discount_rate' => 12];
         $config = array_merge($defaults, $request->user()->restaurant->settings ?? []);
         return response()->json($config);
     }

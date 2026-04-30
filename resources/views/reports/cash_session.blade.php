@@ -12,7 +12,7 @@
             <h1 style="margin: 0; color: #f97316; font-size: 26px; text-transform: uppercase;">{{ $restaurant->name }}</h1>
             <p style="margin: 5px 0 0; color: #6b7280; font-size: 14px;">Rapport Financier Journalier</p>
             <div style="margin-top: 15px;">
-                <span style="background: #f1f5f9; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; color: #64748b;">SESSION #{{ $session->id }}</span>
+                <span style="background: #f1f5f9; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; color: #64748b;">SESSION</span>
             </div>
             <p style="margin: 10px 0 0; font-weight: bold; font-size: 18px;">{{ $session->opened_at ? $session->opened_at->format('d/m/Y') : '' }}</p>
             <p style="margin: 5px 0 0; color: #4b5563; font-size: 14px;">Caissier : <strong>{{ strtoupper($session->user->first_name) }}</strong></p>

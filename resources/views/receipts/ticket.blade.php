@@ -96,7 +96,7 @@
   <div class="divider"></div>
 
   <table style="font-weight: bold;">
-    <tr><td>RECETTE #{{ $receipt['order']['number'] }}</td><td class="td-right">{{ $receipt['order']['date'] }} {{ $receipt['order']['time'] }}</td></tr>
+    <tr><td>RECETTE {{ $receipt['order']['number'] }}</td><td class="td-right">{{ $receipt['order']['date'] }} {{ $receipt['order']['time'] }}</td></tr>
     @if($receipt['order']['table_number'])
       <tr><td>Table: {{ $receipt['order']['table_number'] }}</td><td class="td-right">Couverts: {{ $receipt['order']['covers'] ?: 1 }}</td></tr>
     @endif

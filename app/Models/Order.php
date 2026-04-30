@@ -62,6 +62,17 @@ class Order extends Model
         // Mode TTC : Les prix incluent la TVA. 
         // Total = Sous-total - Remise
         $total = max(0, (float) $subtotal - (float) $this->discount_amount);
+
+        // Remise automatique Gozem si configurée
+        $gozemRate = (float) ($this->restaurant->settings['gozem_discount_rate'] ?? 0);
+        if ($this->type === 'gozem' && $gozemRate > 0) {
+            $gozemDiscount = ($subtotal * $gozemRate / 100);
+            // On utilise la remise Gozem si elle est supérieure à une remise manuelle éventuelle
+            // ou on l'applique systématiquement selon la demande du client
+            $this->discount_amount = $gozemDiscount;
+            $this->discount_reason = "GOZEM"; // On met un label court
+            $total = max(0, (float) $subtotal - (float) $this->discount_amount);
+        }
         
         // Extraction de la TVA du Total
         $vatAmount = 0;
@@ -70,10 +81,12 @@ class Order extends Model
         }
         
         $this->update([
-            'subtotal'   => $subtotal, // Subtotal est TTC
-            'vat_rate'   => $vatRate,
-            'vat_amount' => $vatAmount,
-            'total'      => $total, // Total à payer est exactement le TTC
+            'subtotal'        => $subtotal, 
+            'discount_amount' => $this->discount_amount,
+            'discount_reason' => $this->discount_reason,
+            'vat_rate'        => $vatRate,
+            'vat_amount'      => $vatAmount,
+            'total'           => $total,
         ]);
     }
 

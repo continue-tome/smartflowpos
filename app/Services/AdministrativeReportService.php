@@ -60,7 +60,7 @@ class AdministrativeReportService extends FPDF
             ->whereDate('created_at', $today)
             ->where('status', '!=', 'cancelled')
             ->selectRaw('COUNT(*) as count, SUM(total) as revenue, SUM(covers) as covers, SUM(vat_amount) as vat')->first();
-            
+
         $restaurant_ca = (float)($orderStats->revenue ?? 0);
 
         $cake_value_today = \App\Models\CakeOrder::where('restaurant_id', $restaurantId)
@@ -71,10 +71,10 @@ class AdministrativeReportService extends FPDF
         $total_ca = $restaurant_ca + (float)$cake_value_today;
 
         // 2. ARGENT COLLECTÉ (Liquidité entrante aujourd'hui)
-        $payments = Payment::where(function($q) use ($restaurantId) {
-                $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
-                  ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
-            })
+        $payments = Payment::where(function ($q) use ($restaurantId) {
+            $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId))
+                ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId));
+        })
             ->whereDate('created_at', $today)
             ->selectRaw('method, SUM(amount) as total, COUNT(*) as count')->groupBy('method')->get();
 
@@ -82,10 +82,10 @@ class AdministrativeReportService extends FPDF
 
         // 3. LE PONT MATHÉMATIQUE (Différences)
         // A. Paiements reçus aujourd'hui pour les ventes d'aujourd'hui
-        $paymentsOnTodayOrders = Payment::where(function($q) use ($restaurantId, $today) {
-                $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', $today))
-                  ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', $today));
-            })
+        $paymentsOnTodayOrders = Payment::where(function ($q) use ($restaurantId, $today) {
+            $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', $today))
+                ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', $today));
+        })
             ->whereDate('created_at', $today)
             ->sum('amount');
 
@@ -93,10 +93,10 @@ class AdministrativeReportService extends FPDF
         $unpaid_from_today = max(0, $total_ca - $paymentsOnTodayOrders);
 
         // B. Paiements reçus aujourd'hui pour des commandes antérieures (Acquittement de dettes)
-        $past_debts_collected_today = Payment::where(function($q) use ($restaurantId, $today) {
-                $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', '<', $today))
-                  ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', '<', $today));
-            })
+        $past_debts_collected_today = Payment::where(function ($q) use ($restaurantId, $today) {
+            $q->whereHas('order', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', '<', $today))
+                ->orWhereHas('cakeOrder', fn($q) => $q->where('restaurant_id', $restaurantId)->whereDate('created_at', '<', $today));
+        })
             ->whereDate('created_at', $today)
             ->sum('amount');
 
@@ -136,7 +136,8 @@ class AdministrativeReportService extends FPDF
             try {
                 $this->Image(storage_path('app/public/' . $this->restaurant->logo), 90, 10, 30);
                 $this->Ln(25);
-            } catch (\Exception $e) {}
+            } catch (\Exception $e) {
+            }
         }
 
         // Direction
@@ -150,18 +151,18 @@ class AdministrativeReportService extends FPDF
             $this->Cell(0, 7, $this->s(strtoupper($subtitle)), 0, 1, 'C');
             $this->SetTextColor(0);
         }
-        
+
         $this->SetFont('Arial', '', 10);
         if ($this->restaurant->address) $this->Cell(0, 5, $this->s($this->restaurant->address), 0, 1, 'C');
         if ($this->restaurant->phone)   $this->Cell(0, 5, "Telephone: " . $this->s($this->restaurant->phone), 0, 1, 'C');
-        
+
         $this->Ln(10);
-        
+
         // Titre
         $this->SetFillColor(240, 240, 240);
         $this->SetFont('Arial', 'B', 14);
         $this->Cell(0, 12, $this->s("RAPPORT D'ANALYSE ADMINISTRATIVE - " . Carbon::parse($this->data['date'])->format('d/m/Y')), 1, 1, 'C', true);
-        
+
         $this->Ln(10);
     }
 
@@ -178,7 +179,7 @@ class AdministrativeReportService extends FPDF
         $caTotal = $this->data['restaurant_ca'] + $this->data['cake_revenue'];
         $this->SetFont('Arial', 'B', 12);
         $this->Cell(70, 8, number_format($caTotal, 0, ',', ' ') . " FCFA", 0, 1, 'R');
-        
+
         $this->SetFont('Arial', '', 11);
         $this->Cell(120, 8, $this->s("   - Ventes Restaurant / Cuisine:"), 0, 0);
         $this->Cell(70, 8, number_format($this->data['restaurant_ca'], 0, ',', ' ') . " FCFA", 0, 1, 'R');
@@ -194,16 +195,16 @@ class AdministrativeReportService extends FPDF
             $this->SetTextColor(0);
             $this->SetFont('Arial', '', 11);
         }
-        
+
         $this->Ln(4);
-        
+
         $this->SetFont('Arial', 'B', 11);
         $this->Cell(120, 8, $this->s("B. ARGENT COLLECTÉ (Total Encaissé en caisse):"), 0, 0);
         $this->SetFont('Arial', 'B', 12);
         $this->Cell(70, 8, number_format($this->data['total_collected'], 0, ',', ' ') . " FCFA", 0, 1, 'R');
         $this->SetFont('Arial', 'I', 9);
         $this->Cell(190, 5, $this->s("   *L'argent collecté diffère du CA notamment à cause des ardoises et des acomptes :*"), 0, 1, 'L');
-        
+
         $this->SetFont('Arial', 'I', 11);
         $this->SetTextColor(100, 100, 100);
         $this->Cell(120, 7, $this->s("   - Ardoises / Crédits accordés ce jour (Restant à payer):"), 0, 0);
@@ -220,7 +221,7 @@ class AdministrativeReportService extends FPDF
         $this->SetFont('Arial', '', 11);
         $this->Cell(95, 8, $this->s("Nombre de Commandes (Restaurant):"), 0, 0);
         $this->Cell(95, 8, $this->data['order_stats']->count ?? 0, 0, 1, 'R');
-        
+
         $this->Cell(95, 8, $this->s("Total Couverts:"), 0, 0);
         $this->Cell(95, 8, $this->data['order_stats']->covers ?? 0, 0, 1, 'R');
 
@@ -240,7 +241,7 @@ class AdministrativeReportService extends FPDF
         $this->Cell(70, 10, $this->s("Valeur des Ventes"), 1, 1, 'R', true);
 
         $this->SetFont('Arial', '', 11);
-        
+
         $pillars = [
             'cuisine' => 'Cuisine / Restaurant',
             'bar'     => 'Bar / Boissons',
@@ -295,16 +296,16 @@ class AdministrativeReportService extends FPDF
         $this->SetFont('Arial', '', 11);
         foreach ($this->data['payments'] as $p) {
             $methodMapping = [
-                'cash' => 'Espèces', 
-                'card' => 'Carte Bancaire', 
-                'wave' => 'Wave', 
-                'orange_money' => 'Orange Money', 
+                'cash' => 'Espèces',
+                'card' => 'Carte Bancaire',
+                'wave' => 'Wave',
+                'orange_money' => 'Orange Money',
                 'momo' => 'MTN MoMo',
                 'mixx' => 'Mixx Luck',
                 'moov' => 'Moov Money'
             ];
             $method = $methodMapping[$p->method] ?? ucfirst(str_replace('_', ' ', $p->method));
-            
+
             $this->Cell(80, 10, $this->s($method), 1, 0, 'L');
             $this->Cell(50, 10, $p->count, 1, 0, 'C');
             $this->Cell(60, 10, number_format($p->total, 0, ',', ' ') . " F", 1, 1, 'R');
@@ -334,7 +335,7 @@ class AdministrativeReportService extends FPDF
                 $this->Cell(130, 10, $this->s($label), 1, 0, 'L');
                 $this->Cell(60, 10, "- " . number_format($e->amount, 0, ',', ' ') . " F", 1, 1, 'R');
             }
-            
+
             $this->SetFont('Arial', 'B', 11);
             $this->Cell(130, 10, $this->s("TOTAL DÉPENSES"), 1, 0, 'R', true);
             $this->Cell(60, 10, "- " . number_format((float)$this->data['expenses']->sum('amount'), 0, ',', ' ') . " F", 1, 1, 'R', true);
@@ -349,7 +350,7 @@ class AdministrativeReportService extends FPDF
         $this->Cell(63, 10, "La Caisse", 0, 0, 'C');
         $this->Cell(63, 10, "Comptabilite", 0, 0, 'C');
         $this->Cell(63, 10, "Direction", 0, 1, 'C');
-        
+
         $this->Ln(15);
         $this->Cell(63, 10, "..........................", 0, 0, 'C');
         $this->Cell(63, 10, "..........................", 0, 0, 'C');

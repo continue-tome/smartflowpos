@@ -45,16 +45,18 @@ class CakeOrderController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.notes'   => 'nullable|string',
             'advance_paid'    => 'nullable|numeric|min:0',
+            'payment_method'  => 'nullable|string|in:cash,card,wave,orange_money,momo,moov,mixx,bank,other',
             'notes'           => 'nullable|string',
         ]);
 
         $total = collect($request->items)->sum(fn($i) => $i['qty'] * $i['unit_price']);
         $advance = $request->advance_paid ?? 0;
+        $pm = $request->payment_method ?? 'cash';
 
         $session = CashSession::where('restaurant_id', $request->user()->restaurant_id)
             ->whereNull('closed_at')->latest()->first();
 
-        $order = DB::transaction(function() use ($request, $total, $advance, $session) {
+        $order = DB::transaction(function() use ($request, $total, $advance, $session, $pm) {
             $order = CakeOrder::create([
                 'restaurant_id'   => $request->user()->restaurant_id,
                 'user_id'         => $request->user()->id,
@@ -69,6 +71,9 @@ class CakeOrderController extends Controller
                 'delivery_date'   => $request->delivery_date,
                 'delivery_time'   => $request->delivery_time,
                 'notes'           => $request->notes,
+                'is_paid'         => $advance >= $total && $total > 0,
+                'paid_at'         => $advance >= $total && $total > 0 ? now() : null,
+                'payment_method'  => $advance >= $total ? $pm : null,
             ]);
 
             if ($advance > 0) {
@@ -77,7 +82,7 @@ class CakeOrderController extends Controller
                     'cash_session_id' => $session?->id,
                     'user_id'         => $request->user()->id,
                     'amount'          => $advance,
-                    'method'          => 'cash',
+                    'method'          => $pm,
                 ]);
             }
 
@@ -128,6 +133,8 @@ class CakeOrderController extends Controller
             'delivery_date'   => $request->delivery_date,
             'delivery_time'   => $request->delivery_time,
             'notes'           => $request->notes,
+            'is_paid'         => $advance >= $total && $total > 0,
+            'paid_at'         => $advance >= $total && $total > 0 ? now() : $cakeOrder->paid_at,
         ]);
 
         $cakeOrder->logActivity('cake_order_updated', "Commande gâteau #{$cakeOrder->order_number} modifiée");
