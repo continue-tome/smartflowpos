@@ -105,8 +105,8 @@ class TicketPrintService
                 'total_fmt' => $formatAmount($order->total), 
                 'amount_paid' => $order->amountPaid(), 
                 'amount_paid_fmt' => $formatAmount($order->amountPaid()), 
-                'change' => max(0, $order->amountPaid() - $order->total), 
-                'change_fmt' => $formatAmount(max(0, $order->amountPaid() - $order->total))
+                'change' => $order->payments->sum('change_given'), 
+                'change_fmt' => $formatAmount($order->payments->sum('change_given'))
             ],
             'payments' => $paymentLines,
             'footer' => [
@@ -405,8 +405,13 @@ class TicketPrintService
                 <tfoot>
                     <tr>
                         <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
-                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->subtotal ?? 0), 0, ',', ' ') . "</td>
+                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->type === 'gozem' ? ($order->total - $order->vat_amount) : ($order->subtotal ?? 0)), 0, ',', ' ') . "</td>
                     </tr>
+                    " . (($order->discount_amount > 0 && $order->type !== 'gozem') ? "
+                    <tr>
+                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>REMISE</strong></td>
+                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>- " . number_format((float)$order->discount_amount, 0, ',', ' ') . "</td>
+                    </tr>" : "") . "
                     <tr>
                         <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
                         <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->vat_amount ?? 0), 0, ',', ' ') . "</td>
@@ -417,6 +422,18 @@ class TicketPrintService
                     </tr>
                 </tfoot>
             </table>
+
+            " . ($order->payments->sum('amount_given') > 0 ? "
+            <table style='width: 250px; margin-left: auto; border-collapse: collapse; margin-top: 10px; font-size: 11px;'>
+                <tr>
+                    <td style='padding: 3px; text-align: right; border: 1px solid #000;'>MONTANT DONNÉ</td>
+                    <td style='padding: 3px; text-align: right; border: 1px solid #000; width: 100px;'>" . number_format($order->payments->sum('amount_given'), 0, ',', ' ') . "</td>
+                </tr>
+                <tr>
+                    <td style='padding: 3px; text-align: right; border: 1px solid #000;'>MONTANT RENDU</td>
+                    <td style='padding: 3px; text-align: right; border: 1px solid #000; width: 100px; font-weight: bold;'>" . number_format($order->payments->sum('change_given'), 0, ',', ' ') . "</td>
+                </tr>
+            </table>" : "") . "
 
             <div style='margin-top: 15px; text-align: right; font-size: 11px;'>
                 <p style='margin: 0;'>La Direction</p>
