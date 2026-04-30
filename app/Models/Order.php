@@ -82,7 +82,7 @@ class Order extends Model
         
         $this->update([
             'subtotal'        => $subtotal, 
-            'discount_amount' => $this->discount_amount,
+            'discount_amount' => $this->discount_amount ?? 0,
             'discount_reason' => $this->discount_reason,
             'vat_rate'        => $vatRate,
             'vat_amount'      => $vatAmount,
