@@ -268,11 +268,15 @@ class OrderController extends Controller
             foreach ($request->items as $data) {
                 $item = $order->items()->findOrFail($data['id']);
 
-                // Permettre aux admins, managers ET caissiers de modifier les articles servis
-                if ($item->status === 'done' && $data['quantity'] < $item->quantity) {
-                    $userRole = $request->user()->role?->name ?? '';
-                    $allowed = in_array($userRole, ['admin', 'manager', 'cashier']);
-                    abort_unless($allowed, 403, 'Admin, Manager ou Caissier requis pour réduire un article servi.');
+                // Permettre aux admins, managers ET caissiers de modifier les articles déjà envoyés
+                $isServedOrPreparing = in_array($item->status, ['done', 'preparing', 'served']);
+                if ($isServedOrPreparing && $data['quantity'] < $item->quantity) {
+                    $user = $request->user();
+                    $isAllowed = $user->isManager() || ($user->role && $user->role->name === 'cashier');
+                    
+                    if (!$isAllowed) {
+                        abort(403, 'Permission refusée : Seul un Admin, Manager ou Caissier peut réduire un article déjà envoyé.');
+                    }
                 }
 
                 if ($data['quantity'] === 0) {
@@ -496,6 +500,8 @@ class OrderController extends Controller
 
     private function authorizeOrder(Request $request, Order $order): void
     {
-        abort_if($order->restaurant_id !== $request->user()->restaurant_id, 403);
+        if ($order->restaurant_id != $request->user()->restaurant_id) {
+            abort(403, "Accès refusé : Cette commande n'appartient pas à votre établissement (Ord:{$order->restaurant_id}, Usr:{$request->user()->restaurant_id})");
+        }
     }
 }
