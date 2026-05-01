@@ -113,15 +113,22 @@ class ProductController extends Controller
         abort_unless($request->user()->isManager(), 403, 'Manager requis.');
 
         $request->validate([
-            'name'        => 'sometimes|string|max:200',
-            'price'       => 'sometimes|numeric|min:0',
-            'available'   => 'nullable',
-            'track_stock' => 'nullable',
-            'quantity'    => 'sometimes|numeric|min:0',
-            'min_quantity'=> 'sometimes|numeric|min:0',
-            'category_id' => 'sometimes|exists:categories,id',
-            'image'       => 'nullable|sometimes|image|max:2048',
-            'emoji'       => 'nullable|string|max:20',
+            'name'           => 'sometimes|string|max:200',
+            'price'          => 'sometimes|numeric|min:0',
+            'available'      => 'nullable',
+            'track_stock'    => 'nullable',
+            'quantity'       => 'sometimes|numeric|min:0',
+            'min_quantity'   => 'sometimes|numeric|min:0',
+            'category_id'    => 'sometimes|exists:categories,id',
+            'image'          => 'nullable|sometimes|image|max:2048',
+            'emoji'          => 'nullable|string|max:20',
+            'modifier_groups' => 'nullable|array',
+            'modifier_groups.*.name'     => 'required|string',
+            'modifier_groups.*.required' => 'nullable',
+            'modifier_groups.*.multiple' => 'nullable',
+            'modifier_groups.*.modifiers' => 'array',
+            'modifier_groups.*.modifiers.*.name'        => 'required|string',
+            'modifier_groups.*.modifiers.*.extra_price' => 'numeric|min:0',
         ]);
 
         $data = $request->only([
@@ -140,6 +147,29 @@ class ProductController extends Controller
         }
 
         $product->update($data);
+
+        // Mise à jour des modificateurs
+        if ($request->has('modifier_groups')) {
+            // Approche simple : supprimer et recréer
+            $product->modifierGroups()->delete(); 
+
+            foreach ($request->modifier_groups as $i => $groupData) {
+                $group = $product->modifierGroups()->create([
+                    'name'     => $groupData['name'],
+                    'required' => filter_var($groupData['required'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'multiple' => filter_var($groupData['multiple'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'order'    => $i,
+                ]);
+
+                foreach ($groupData['modifiers'] ?? [] as $j => $modData) {
+                    $group->modifiers()->create([
+                        'name'        => $modData['name'],
+                        'extra_price' => $modData['extra_price'] ?? 0,
+                        'order'       => $j,
+                    ]);
+                }
+            }
+        }
 
         return response()->json($product->load('category', 'modifierGroups.modifiers'));
     }
