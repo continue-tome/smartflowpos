@@ -18,7 +18,7 @@
 <style>
   * { box-sizing: border-box; -webkit-box-sizing: border-box; margin: 0; padding: 0; }
   .receipt-wrap {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'DejaVu Sans', sans-serif;
     font-size: 10px;
     color: #000;
     width: auto;

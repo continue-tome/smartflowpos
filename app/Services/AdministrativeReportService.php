@@ -48,7 +48,9 @@ class AdministrativeReportService extends FPDF
     /** Helper pour gerer les accents en FPDF */
     private function s($str)
     {
-        return iconv('UTF-8', 'windows-1252//TRANSLIT', $str ?? '');
+        if (is_null($str)) return '';
+        // Utilisation de utf8_decode ou mb_convert_encoding pour une meilleure compatibilité FPDF standard
+        return mb_convert_encoding($str, 'ISO-8859-1', 'UTF-8');
     }
 
     private function collectData($date, $restaurantId)

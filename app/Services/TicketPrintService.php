@@ -145,7 +145,7 @@ class TicketPrintService
         $date = now()->format('d/m H:i');
 
         return "
-        <div style='font-family: monospace; width: 100%; font-size: 13px; color: #000; line-height: 1.25;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; width: 100%; font-size: 13px; color: #000; line-height: 1.25;'>
             <div style='text-align: center; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; margin-bottom: 2px;'>
                 " . strtoupper($restaurant->name) . " - " . strtoupper($this->routing->destinationLabel($destination)) . "
             </div>
@@ -186,7 +186,7 @@ class TicketPrintService
         $id = str_pad($expense->id, 4, '0', STR_PAD_LEFT);
 
         return "
-        <div style='font-family: monospace; width: 100%; font-size: 11px; color: #000; line-height: 1.1;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; width: 100%; font-size: 11px; color: #000; line-height: 1.1;'>
             <div style='text-align: center; font-weight: bold; border-bottom: 1px dashed #000; padding-bottom: 2px;'>" . strtoupper($restaurant->name) . "</div>
             <div style='text-align: center; font-weight: bold; margin: 3px 0;'>BON DE DEPENSE</div>
             
@@ -220,7 +220,7 @@ class TicketPrintService
         $close = $session->closed_at ? $session->closed_at->format('d/m H:i') : 'ACTIF';
 
         $html = "
-        <div style='font-family: monospace; width: 100%; font-size: 10px; color: #000; line-height: 1.1;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; width: 100%; font-size: 10px; color: #000; line-height: 1.1;'>
             <div style='text-align: center; font-weight: bold; font-size: 12px;'>" . strtoupper($restaurant->name) . "</div>
             <div style='text-align: center; border-bottom: 1px solid #000; padding-bottom: 1px; margin-bottom: 3px; font-weight: bold;'>CLOTURE</div>
             
@@ -298,7 +298,7 @@ class TicketPrintService
         }
 
         $html = "
-        <div style='font-family: monospace; width: 100%; font-size: 10px; color: #000; line-height: 1.1; background: #fff;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; width: 100%; font-size: 10px; color: #000; line-height: 1.1; background: #fff;'>
             <div style='text-align: center;'>
                 <div style='font-size: 13px; font-weight: bold;'>" . strtoupper($restaurant->name) . "</div>
                 <div style='font-weight: bold; border-top: 1px dashed #000; border-bottom: 1px dashed #000; margin: 3px 0; padding: 2px 0;'>
@@ -373,7 +373,7 @@ class TicketPrintService
         }
 
         $html = "
-        <div style='font-family: Arial, sans-serif; background: #fff; color: #000; padding: 30px 40px; min-height: 260mm;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; background: #fff; color: #000; padding: 30px 40px; min-height: 260mm;'>
 
             <!-- EN-TÊTE -->
             <table style='width: 100%; margin-bottom: 25px;'>
@@ -487,7 +487,7 @@ class TicketPrintService
     public function generateInvoiceA4Pdf(Order $order): string
     {
         $content = $this->invoiceA4Html($order);
-        $html = "<html><head><style>body { font-family: Arial, sans-serif; color: #000; margin: 0; padding: 20px; } .wrapper { width: 180mm; margin: 0 auto; }</style></head><body><div class='wrapper'>{$content}</div></body></html>";
+        $html = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><style>body { font-family: 'DejaVu Sans', sans-serif; color: #000; margin: 0; padding: 20px; } .wrapper { width: 180mm; margin: 0 auto; }</style></head><body><div class='wrapper'>{$content}</div></body></html>";
         return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
 
@@ -521,7 +521,7 @@ class TicketPrintService
         }
 
         return "
-        <div style='font-family: Helvetica, sans-serif; color: #000; padding: 15px; border: 1px solid #000; position: relative;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; color: #000; padding: 15px; border: 1px solid #000; position: relative;'>
             <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;'>
                 <tr>
                     <td style='vertical-align: top;'>
@@ -639,7 +639,7 @@ class TicketPrintService
         $amount = number_format((float)$expense->amount, 0, ',', ' ');
 
         return "
-        <div style='font-family: Helvetica, sans-serif; color: #000; padding: 15px; border: 1px solid #000; position: relative;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; color: #000; padding: 15px; border: 1px solid #000; position: relative;'>
             <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 10px;'>
                 <tr>
                     <td style='vertical-align: top;'>
@@ -721,8 +721,8 @@ class TicketPrintService
     }
     public function generateBulkInvoiceA4Pdf($orders): string
     {
-        $html = "<html><head><style>
-            body { margin: 0; padding: 10mm; font-family: Arial, sans-serif; background: #fff; }
+        $html = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/><style>
+            body { margin: 0; padding: 10mm; font-family: 'DejaVu Sans', sans-serif; background: #fff; }
             .invoice-outer { width: 100%; margin-bottom: 20px; }
             .invoice-inner { width: 180mm; margin: 0 auto; }
             .divider { border-bottom: 1px dashed #000; margin: 15px 0; width: 180mm; margin-left: auto; margin-right: auto; }
@@ -746,7 +746,7 @@ class TicketPrintService
 
     public function generateKitchenTicketPdf(Order $order, string $destination = 'kitchen', ?array $itemIds = null): string
     {
-        $html = "<html><body>" . $this->kitchenTicketHtml($order, $destination, $itemIds) . "</body></html>";
+        $html = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/></head><body>" . $this->kitchenTicketHtml($order, $destination, $itemIds) . "</body></html>";
         return Pdf::loadHTML($html)->setPaper([0, 0, 226.77, 600])->output();
     }
 
