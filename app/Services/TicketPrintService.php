@@ -158,10 +158,17 @@ class TicketPrintService
             <table style='width: 100%; border-collapse: collapse;'>
                 " . $items->map(fn($item) => "
                 <tr style='border-bottom: 1px dashed #000;'>
-                    <td style='vertical-align: top; padding: 4px 0; font-size: 18px; font-weight: bold;'>x{$item->quantity}</td>
-                    <td style='padding: 4px 0; font-size: 16px; font-weight: bold;'>
-                        " . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "
-                        " . ($item->notes ? "<div style='font-size: 12px; font-weight: bold; font-style: italic;'>! {$item->notes}</div>" : "") . "
+                    <td style='padding: 6px 0;'>
+                        <div style='display: flex; justify-content: space-between; align-items: baseline;'>
+                            <span style='font-size: 14px; font-weight: bold;'>" . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "</span>
+                            <span style='flex-grow: 1; border-bottom: 1px dotted #aaa; margin: 0 5px; height: 10px;'></span>
+                            <span style='font-size: 16px; font-weight: 900;'>{$item->quantity}</span>
+                        </div>
+                        " . ($item->modifiers && $item->modifiers->count() > 0 ? "
+                            <div style='font-size: 11px; font-weight: bold; margin-left: 10px; color: #333;'>
+                                " . $item->modifiers->map(fn($m) => "• " . strtoupper($m->modifier?->name ?? 'OPTION'))->implode('<br>') . "
+                            </div>" : "") . "
+                        " . ($item->notes ? "<div style='font-size: 10px; font-weight: bold; font-style: italic; color: #666; margin-top: 2px;'>* {$item->notes}</div>" : "") . "
                     </td>
                 </tr>")->implode('') . "
             </table>
