@@ -361,91 +361,115 @@ class TicketPrintService
         $restaurant = $order->restaurant;
         $customer = $order->customer_name ?: 'Client de Passage';
         $date = $order->created_at->format('d/m/Y');
-        
+        $time = $order->created_at->format('H:i');
+        $typeLabel = $this->typeLabel($order->type);
+        $waiter = $order->waiter?->first_name ?? 'N/A';
+
         $html = "
-        <div style='padding: 10px; border: 1px solid #000; font-family: Arial, sans-serif; background: #fff;'>
-            <table style='width: 100%; border-bottom: 2px solid #000; padding-bottom: 5px;'>
+        <div style='font-family: Arial, sans-serif; background: #fff; color: #000; padding: 30px 40px; min-height: 260mm;'>
+
+            <!-- EN-TÊTE -->
+            <table style='width: 100%; margin-bottom: 25px;'>
                 <tr>
-                    <td>
-                        <h1 style='margin: 0; font-size: 20px;'>" . strtoupper($restaurant->name) . "</h1>
-                        <p style='margin: 2px 0; font-size: 11px;'>{$restaurant->address}</p>
-                        <p style='margin: 2px 0; font-size: 11px;'>Tél: {$restaurant->phone}</p>
-                        <p style='margin: 2px 0; font-size: 11px;'>IFU: 1001580865</p>
+                    <td style='vertical-align: top; width: 60%;'>
+                        <h1 style='margin: 0 0 8px 0; font-size: 22px; letter-spacing: 1px;'>" . strtoupper($restaurant->name) . "</h1>
+                        <p style='margin: 4px 0; font-size: 13px;'>{$restaurant->address}</p>
+                        <p style='margin: 4px 0; font-size: 13px;'>Tél : {$restaurant->phone}</p>
+                        <p style='margin: 4px 0; font-size: 13px; font-weight: bold;'>IFU : 1001580865</p>
                     </td>
                     <td style='text-align: right; vertical-align: top;'>
-                        <h2 style='margin: 0; font-size: 18px;'>FACTURE</h2>
-                        <p style='margin: 2px 0; font-size: 11px;'>N°: {$order->order_number}</p>
-                        <p style='margin: 2px 0; font-size: 11px;'>Date: {$date}</p>
+                        <h2 style='margin: 0 0 8px 0; font-size: 20px; letter-spacing: 2px;'>FACTURE</h2>
+                        <p style='margin: 4px 0; font-size: 13px;'>N° : {$order->order_number}</p>
+                        <p style='margin: 4px 0; font-size: 13px;'>Date : {$date} à {$time}</p>
+                        <p style='margin: 4px 0; font-size: 13px;'>Type : {$typeLabel}</p>
+                        <p style='margin: 4px 0; font-size: 13px;'>Serv : {$waiter}</p>
                     </td>
                 </tr>
             </table>
 
-            <div style='margin: 8px 0; font-size: 11px;'>
-                <strong>DOIT À:</strong><br>
-                " . strtoupper($customer) . " " . ($order->customer_phone ?: '') . "
+            <div style='border-top: 2px solid #000; margin-bottom: 20px;'></div>
+
+            <!-- CLIENT -->
+            <div style='margin-bottom: 25px; font-size: 13px;'>
+                <strong>DOIT À :</strong><br>
+                <span style='font-size: 14px;'>" . strtoupper($customer) . "</span>" . ($order->customer_phone ? " — {$order->customer_phone}" : '') . "
             </div>
 
-            <table style='width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px;'>
+            <!-- TABLEAU DES ARTICLES -->
+            <table style='width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;'>
                 <thead>
-                    <tr style='border-top: 2px solid #000; border-bottom: 2px solid #000;'>
-                        <th style='padding: 5px; text-align: left; border: 1px solid #000;'>DESIGNATION</th>
-                        <th style='padding: 5px; text-align: center; border: 1px solid #000;'>QTE</th>
-                        <th style='padding: 5px; text-align: right; border: 1px solid #000;'>P.U</th>
-                        <th style='padding: 5px; text-align: right; border: 1px solid #000;'>TOTAL</th>
+                    <tr style='background: #f0f0f0;'>
+                        <th style='padding: 10px 12px; text-align: left; border: 1px solid #000;'>DÉSIGNATION</th>
+                        <th style='padding: 10px 12px; text-align: center; border: 1px solid #000; width: 80px;'>QTÉ</th>
+                        <th style='padding: 10px 12px; text-align: right; border: 1px solid #000; width: 120px;'>P.U</th>
+                        <th style='padding: 10px 12px; text-align: right; border: 1px solid #000; width: 130px;'>TOTAL</th>
                     </tr>
                 </thead>
                 <tbody>";
 
         foreach ($order->items as $item) {
             if ($item->status === 'cancelled') continue;
+            $lineTotal = $item->unit_price * $item->quantity;
             $html .= "
-                <tr>
-                    <td style='padding: 5px; border: 1px solid #000;'>" . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "</td>
-                    <td style='padding: 5px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
-                    <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
-                    <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price * $item->quantity, 0, ',', ' ') . "</td>
-                </tr>";
+                    <tr>
+                        <td style='padding: 10px 12px; border: 1px solid #000;'>" . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "</td>
+                        <td style='padding: 10px 12px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
+                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
+                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format($lineTotal, 0, ',', ' ') . "</td>
+                    </tr>";
         }
 
         $html .= "
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
-                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->type === 'gozem' ? ($order->total - $order->vat_amount) : ($order->subtotal ?? 0)), 0, ',', ' ') . "</td>
+                        <td colspan='3' style='padding: 10px 12px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
+                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->type === 'gozem' ? ($order->total - $order->vat_amount) : ($order->subtotal ?? 0)), 0, ',', ' ') . "</td>
                     </tr>
                     " . (($order->discount_amount > 0 && $order->type !== 'gozem') ? "
                     <tr>
-                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>REMISE</strong></td>
-                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>- " . number_format((float)$order->discount_amount, 0, ',', ' ') . "</td>
+                        <td colspan='3' style='padding: 10px 12px; text-align: right; border: 1px solid #000;'><strong>REMISE</strong></td>
+                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>- " . number_format((float)$order->discount_amount, 0, ',', ' ') . "</td>
                     </tr>" : "") . "
                     <tr>
-                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
-                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->vat_amount ?? 0), 0, ',', ' ') . "</td>
+                        <td colspan='3' style='padding: 10px 12px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
+                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->vat_amount ?? 0), 0, ',', ' ') . "</td>
                     </tr>
-                    <tr style='border-top: 2px solid #000; border-bottom: 2px solid #000;'>
-                        <td colspan='3' style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>TOTAL TTC</strong></td>
-                        <td style='padding: 5px; text-align: right; border: 1px solid #000;'><strong>" . number_format((float)($order->total ?? 0), 0, ',', ' ') . " FCFA</strong></td>
+                    <tr style='background: #f0f0f0;'>
+                        <td colspan='3' style='padding: 12px; text-align: right; border: 2px solid #000; font-size: 15px;'><strong>TOTAL TTC</strong></td>
+                        <td style='padding: 12px; text-align: right; border: 2px solid #000; font-size: 15px;'><strong>" . number_format((float)($order->total ?? 0), 0, ',', ' ') . " FCFA</strong></td>
                     </tr>
                 </tfoot>
             </table>
 
+            <!-- MODE DE PAIEMENT -->
+            " . ($order->payments->count() > 0 ? "
+            <div style='margin-bottom: 20px; font-size: 13px; font-weight: bold; padding: 10px 12px; border: 1px dashed #000;'>
+                MODE DE PAIEMENT : " . $order->payments->map(fn($p) => strtoupper($this->methodLabel($p->method)))->implode(', ') . "
+            </div>" : "") . "
+
+            <!-- MONTANT DONNÉ / RENDU -->
             " . ($order->payments->sum('amount_given') > 0 ? "
-            <table style='width: 250px; margin-left: auto; border-collapse: collapse; margin-top: 10px; font-size: 11px;'>
+            <table style='width: 300px; margin-left: auto; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;'>
                 <tr>
-                    <td style='padding: 3px; text-align: right; border: 1px solid #000;'>MONTANT DONNÉ</td>
-                    <td style='padding: 3px; text-align: right; border: 1px solid #000; width: 100px;'>" . number_format($order->payments->sum('amount_given'), 0, ',', ' ') . "</td>
+                    <td style='padding: 8px 12px; text-align: right; border: 1px solid #000;'>MONTANT DONNÉ</td>
+                    <td style='padding: 8px 12px; text-align: right; border: 1px solid #000; width: 120px;'>" . number_format($order->payments->sum('amount_given'), 0, ',', ' ') . "</td>
                 </tr>
                 <tr>
-                    <td style='padding: 3px; text-align: right; border: 1px solid #000;'>MONTANT RENDU</td>
-                    <td style='padding: 3px; text-align: right; border: 1px solid #000; width: 100px; font-weight: bold;'>" . number_format($order->payments->sum('change_given'), 0, ',', ' ') . "</td>
+                    <td style='padding: 8px 12px; text-align: right; border: 1px solid #000;'>MONTANT RENDU</td>
+                    <td style='padding: 8px 12px; text-align: right; border: 1px solid #000; width: 120px; font-weight: bold;'>" . number_format($order->payments->sum('change_given'), 0, ',', ' ') . "</td>
                 </tr>
             </table>" : "") . "
 
-            <div style='margin-top: 15px; text-align: right; font-size: 11px;'>
-                <p style='margin: 0;'>La Direction</p>
-                <br>
-                <p style='margin: 0;'>_________________________</p>
+            <!-- SIGNATURE -->
+            <div style='margin-top: 60px;'>
+                <div style='text-align: right; font-size: 13px;'>
+                    <p style='margin: 0 0 40px 0;'>La Direction</p>
+                    <p style='margin: 0;'>_________________________</p>
+                </div>
+                <div style='text-align: center; margin-top: 40px; font-size: 11px; color: #555; border-top: 1px solid #999; padding-top: 10px;'>
+                    Merci pour votre confiance ! Certifié par CI GUSTA POS.
+                </div>
             </div>
         </div>";
 
