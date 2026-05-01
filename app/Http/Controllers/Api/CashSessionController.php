@@ -30,7 +30,7 @@ class CashSessionController extends Controller
 
         // On injecte les valeurs dynamiques dont le frontend a besoin
         $session->total_sales = $totals['grand_total'];
-        $session->expected_amount = (float)$session->opening_amount + (float)$totals['cash'] - (float)$expensesTotal;
+        $session->expected_amount = (float)$session->opening_amount + (float)$totals['grand_total'] - (float)$expensesTotal;
         $session->total_expenses = (float)$expensesTotal;
 
         return response()->json([
