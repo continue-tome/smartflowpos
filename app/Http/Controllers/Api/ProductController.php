@@ -149,24 +149,33 @@ class ProductController extends Controller
         $product->update($data);
 
         // Mise à jour des modificateurs
-        if ($request->has('modifier_groups')) {
-            // Approche simple : supprimer et recréer
-            $product->modifierGroups()->delete(); 
+        // On vérifie si la clé est présente dans la requête (même si vide)
+        if ($request->has('modifier_groups') || $request->input('clear_modifiers')) {
+            // Supprimer proprement les groupes et leurs modificateurs associés
+            $product->modifierGroups->each(function($group) {
+                $group->modifiers()->delete();
+                $group->delete();
+            });
 
-            foreach ($request->modifier_groups as $i => $groupData) {
-                $group = $product->modifierGroups()->create([
-                    'name'     => $groupData['name'],
-                    'required' => filter_var($groupData['required'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                    'multiple' => filter_var($groupData['multiple'] ?? false, FILTER_VALIDATE_BOOLEAN),
-                    'order'    => $i,
-                ]);
-
-                foreach ($groupData['modifiers'] ?? [] as $j => $modData) {
-                    $group->modifiers()->create([
-                        'name'        => $modData['name'],
-                        'extra_price' => $modData['extra_price'] ?? 0,
-                        'order'       => $j,
+            $groups = $request->input('modifier_groups', []);
+            if (is_array($groups)) {
+                foreach ($groups as $i => $groupData) {
+                    $group = $product->modifierGroups()->create([
+                        'name'     => $groupData['name'],
+                        'required' => filter_var($groupData['required'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'multiple' => filter_var($groupData['multiple'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'order'    => $i,
                     ]);
+
+                    if (isset($groupData['modifiers']) && is_array($groupData['modifiers'])) {
+                        foreach ($groupData['modifiers'] as $j => $modData) {
+                            $group->modifiers()->create([
+                                'name'        => $modData['name'],
+                                'extra_price' => $modData['extra_price'] ?? 0,
+                                'order'       => $j,
+                            ]);
+                        }
+                    }
                 }
             }
         }
