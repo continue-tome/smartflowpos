@@ -80,7 +80,7 @@ class ExpenseController extends Controller
     public function update(Request $request, Expense $expense)
     {
         abort_if($expense->restaurant_id !== $request->user()->restaurant_id, 403);
-        abort_unless($request->user()->isManager(), 403, 'Manager requis pour modifier une dépense.');
+        abort_unless($request->user()->isManager() || $request->user()->hasRole('cashier'), 403, 'Accès refusé : Seul un Admin, Manager ou Caissier peut modifier une dépense.');
 
         $request->validate([
             'category'       => 'required|string',
@@ -119,7 +119,7 @@ class ExpenseController extends Controller
     public function destroy(Request $request, Expense $expense)
     {
         abort_if($expense->restaurant_id !== $request->user()->restaurant_id, 403);
-        abort_unless($request->user()->isManager(), 403, 'Manager requis.');
+        abort_unless($request->user()->isManager() || $request->user()->hasRole('cashier'), 403, 'Accès refusé : Seul un Admin, Manager ou Caissier peut supprimer une dépense.');
 
         $request->validate(['reason' => 'required|string|min:5']);
 

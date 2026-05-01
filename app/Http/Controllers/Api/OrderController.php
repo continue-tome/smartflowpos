@@ -273,8 +273,13 @@ class OrderController extends Controller
                 if ($isServedOrPreparing && $data['quantity'] < $item->quantity) {
                     $user = $request->user();
                     
+                    // S'assurer que le rôle est bien chargé
+                    $user->loadMissing('role');
+                    
                     if (!$user->isManager() && !$user->hasRole('cashier')) {
-                        abort(403, 'Permission refusée : Seul un Admin, Manager ou Caissier peut réduire la quantité d\'un article déjà envoyé en cuisine.');
+                        return response()->json([
+                            'message' => "Permission refusée : Seul un Admin, Manager ou Caissier peut réduire un article déjà envoyé en cuisine."
+                        ], 403);
                     }
                 }
 
