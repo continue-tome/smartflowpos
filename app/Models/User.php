@@ -39,10 +39,18 @@ class User extends Authenticatable
     // Vérifier un rôle
     public function hasRole(string|array $roles): bool
     {
-        $roleName = $this->role->name;
-        return is_array($roles)
-            ? in_array($roleName, $roles)
-            : $roleName === $roles;
+        if (!$this->role) {
+            return false;
+        }
+
+        $roleName = strtolower($this->role->name);
+        
+        if (is_array($roles)) {
+            $roles = array_map('strtolower', $roles);
+            return in_array($roleName, $roles);
+        }
+        
+        return $roleName === strtolower($roles);
     }
 
     public function isManager(): bool

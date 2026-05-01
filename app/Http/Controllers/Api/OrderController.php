@@ -272,10 +272,9 @@ class OrderController extends Controller
                 $isServedOrPreparing = in_array($item->status, ['done', 'preparing', 'served']);
                 if ($isServedOrPreparing && $data['quantity'] < $item->quantity) {
                     $user = $request->user();
-                    $isAllowed = $user->isManager() || ($user->role && $user->role->name === 'cashier');
                     
-                    if (!$isAllowed) {
-                        abort(403, 'Permission refusée : Seul un Admin, Manager ou Caissier peut réduire un article déjà envoyé.');
+                    if (!$user->isManager() && !$user->hasRole('cashier')) {
+                        abort(403, 'Permission refusée : Seul un Admin, Manager ou Caissier peut réduire la quantité d\'un article déjà envoyé en cuisine.');
                     }
                 }
 
