@@ -212,7 +212,13 @@ class OrderController extends Controller
 
         $items = $itemsQuery->get();
         $sentItemIds = $items->pluck('id')->toArray();
-        abort_if($items->isEmpty(), 422, 'Aucun item à envoyer en cuisine.');
+        
+        if ($items->isEmpty()) {
+            return response()->json([
+                'message' => 'Tous les articles sont déjà en cuisine.',
+                'tickets' => []
+            ]);
+        }
 
         DB::transaction(function () use ($request, $order, $items, $sentItemIds) {
             $items->each->update(['status' => 'preparing', 'sent_at' => now()]);

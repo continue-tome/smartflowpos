@@ -373,14 +373,14 @@ class TicketPrintService
         }
 
         $html = "
-        <div style='font-family: \"DejaVu Sans\", sans-serif; background: #fff; color: #000; padding: 30px 40px; min-height: 260mm;'>
+        <div style='font-family: \"DejaVu Sans\", sans-serif; background: #fff; color: #000; padding: 20px 30px; min-height: 260mm; line-height: 1.2;'>
 
             <!-- EN-TÊTE -->
-            <table style='width: 100%; margin-bottom: 25px;'>
+            <table style='width: 100%; margin-bottom: 15px;'>
                 <tr>
                     <td style='vertical-align: top; width: 60%;'>
                         {$logoHtml}
-                        <h1 style='margin: 0 0 8px 0; font-size: 22px; letter-spacing: 1px;'>" . strtoupper($restaurant->name) . "</h1>
+                        <h1 style='margin: 0 0 4px 0; font-size: 18px; letter-spacing: 1px;'>" . strtoupper($restaurant->name) . "</h1>
                         <p style='margin: 4px 0; font-size: 13px;'>{$restaurant->address}</p>
                         <p style='margin: 4px 0; font-size: 13px;'>Tél : {$restaurant->phone}</p>
                         <p style='margin: 4px 0; font-size: 13px; font-weight: bold;'>IFU : 1001580865</p>
@@ -395,10 +395,10 @@ class TicketPrintService
                 </tr>
             </table>
 
-            <div style='border-top: 2px solid #000; margin-bottom: 20px;'></div>
+            <div style='border-top: 2px solid #000; margin-bottom: 15px;'></div>
 
             <!-- CLIENT -->
-            <div style='margin-bottom: 25px; font-size: 13px;'>
+            <div style='margin-bottom: 15px; font-size: 12px;'>
                 <strong>DOIT À :</strong><br>
                 <span style='font-size: 14px;'>" . strtoupper($customer) . "</span>" . ($order->customer_phone ? " — {$order->customer_phone}" : '') . "
             </div>
@@ -407,10 +407,10 @@ class TicketPrintService
             <table style='width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;'>
                 <thead>
                     <tr style='background: #f0f0f0;'>
-                        <th style='padding: 10px 12px; text-align: left; border: 1px solid #000;'>DÉSIGNATION</th>
-                        <th style='padding: 10px 12px; text-align: center; border: 1px solid #000; width: 80px;'>QTÉ</th>
-                        <th style='padding: 10px 12px; text-align: right; border: 1px solid #000; width: 120px;'>P.U</th>
-                        <th style='padding: 10px 12px; text-align: right; border: 1px solid #000; width: 130px;'>TOTAL</th>
+                        <th style='padding: 6px 8px; text-align: left; border: 1px solid #000;'>DÉSIGNATION</th>
+                        <th style='padding: 6px 8px; text-align: center; border: 1px solid #000; width: 80px;'>QTÉ</th>
+                        <th style='padding: 6px 8px; text-align: right; border: 1px solid #000; width: 120px;'>P.U</th>
+                        <th style='padding: 6px 8px; text-align: right; border: 1px solid #000; width: 130px;'>TOTAL</th>
                     </tr>
                 </thead>
                 <tbody>";
@@ -420,10 +420,10 @@ class TicketPrintService
             $lineTotal = $item->unit_price * $item->quantity;
             $html .= "
                     <tr>
-                        <td style='padding: 10px 12px; border: 1px solid #000;'>" . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "</td>
-                        <td style='padding: 10px 12px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
-                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
-                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format($lineTotal, 0, ',', ' ') . "</td>
+                        <td style='padding: 4px 8px; border: 1px solid #000;'>" . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "</td>
+                        <td style='padding: 4px 8px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
+                        <td style='padding: 4px 8px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
+                        <td style='padding: 4px 8px; text-align: right; border: 1px solid #000;'>" . number_format($lineTotal, 0, ',', ' ') . "</td>
                     </tr>";
         }
 
@@ -431,8 +431,8 @@ class TicketPrintService
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan='3' style='padding: 10px 12px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
-                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->type === 'gozem' ? ($order->total - $order->vat_amount) : ($order->subtotal ?? 0)), 0, ',', ' ') . "</td>
+                        <td colspan='3' style='padding: 4px 8px; text-align: right; border: 1px solid #000;'><strong>TOTAL HT</strong></td>
+                        <td style='padding: 4px 8px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->type === 'gozem' ? ($order->total - $order->vat_amount) : ($order->subtotal ?? 0)), 0, ',', ' ') . "</td>
                     </tr>
                     " . (($order->discount_amount > 0 && $order->type !== 'gozem') ? "
                     <tr>
@@ -440,12 +440,12 @@ class TicketPrintService
                         <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>- " . number_format((float)$order->discount_amount, 0, ',', ' ') . "</td>
                     </tr>" : "") . "
                     <tr>
-                        <td colspan='3' style='padding: 10px 12px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
-                        <td style='padding: 10px 12px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->vat_amount ?? 0), 0, ',', ' ') . "</td>
+                        <td colspan='3' style='padding: 4px 8px; text-align: right; border: 1px solid #000;'><strong>TVA (18%)</strong></td>
+                        <td style='padding: 4px 8px; text-align: right; border: 1px solid #000;'>" . number_format((float)($order->vat_amount ?? 0), 0, ',', ' ') . "</td>
                     </tr>
                     <tr style='background: #f0f0f0;'>
-                        <td colspan='3' style='padding: 12px; text-align: right; border: 2px solid #000; font-size: 15px;'><strong>TOTAL TTC</strong></td>
-                        <td style='padding: 12px; text-align: right; border: 2px solid #000; font-size: 15px;'><strong>" . number_format((float)($order->total ?? 0), 0, ',', ' ') . " FCFA</strong></td>
+                        <td colspan='3' style='padding: 6px 8px; text-align: right; border: 2px solid #000; font-size: 14px;'><strong>TOTAL TTC</strong></td>
+                        <td style='padding: 6px 8px; text-align: right; border: 2px solid #000; font-size: 14px;'><strong>" . number_format((float)($order->total ?? 0), 0, ',', ' ') . " FCFA</strong></td>
                     </tr>
                 </tfoot>
             </table>
