@@ -76,6 +76,45 @@ class ExpenseController extends Controller
         return response()->json($expense->load('user:id,first_name,last_name'), 201);
     }
 
+    /** Modifier une dépense (Admin uniquement) */
+    public function update(Request $request, Expense $expense)
+    {
+        abort_if($expense->restaurant_id !== $request->user()->restaurant_id, 403);
+        abort_unless($request->user()->isManager(), 403, 'Manager requis pour modifier une dépense.');
+
+        $request->validate([
+            'category'       => 'required|string',
+            'description'    => 'nullable|string|max:255',
+            'amount'         => 'required|numeric|min:0.01',
+            'beneficiary'    => 'nullable|string|max:255',
+            'agent_name'     => 'nullable|string|max:255',
+            'notes'          => 'nullable|string',
+        ]);
+
+        $oldAmount = $expense->amount;
+
+        $expense->update([
+            'category'    => $request->category,
+            'description' => $request->description ?: $expense->description,
+            'amount'      => $request->amount,
+            'beneficiary' => $request->beneficiary,
+            'agent_name'  => $request->agent_name,
+            'notes'       => $request->notes,
+        ]);
+
+        // Recalculer le total de la session si rattachée
+        if ($expense->cash_session_id) {
+            $session = CashSession::find($expense->cash_session_id);
+            $session?->update([
+                'total_expenses' => $session->expenses()->sum('amount'),
+            ]);
+        }
+
+        $expense->logActivity('expense_updated', "Dépense modifiée: {$expense->description} — Ancien montant: {$oldAmount} FCFA → Nouveau: {$expense->amount} FCFA");
+
+        return response()->json($expense->load('user:id,first_name,last_name'));
+    }
+
     /** Supprimer une dépense (Admin uniquement) */
     public function destroy(Request $request, Expense $expense)
     {

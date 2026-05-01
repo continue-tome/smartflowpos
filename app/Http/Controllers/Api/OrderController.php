@@ -262,12 +262,17 @@ class OrderController extends Controller
 
         abort_if(in_array($order->status, ['paid', 'cancelled']), 422, 'Impossible de modifier une commande finalisée.');
 
-        DB::transaction(function () use ($request, $order) {
+        $modifiedItemIds = [];
+
+        DB::transaction(function () use ($request, $order, &$modifiedItemIds) {
             foreach ($request->items as $data) {
                 $item = $order->items()->findOrFail($data['id']);
 
+                // Permettre aux admins, managers ET caissiers de modifier les articles servis
                 if ($item->status === 'done' && $data['quantity'] < $item->quantity) {
-                    abort_unless($request->user()->isManager(), 403, 'Manager requis pour annuler un article servi.');
+                    $userRole = $request->user()->role?->name ?? '';
+                    $allowed = in_array($userRole, ['admin', 'manager', 'cashier']);
+                    abort_unless($allowed, 403, 'Admin, Manager ou Caissier requis pour réduire un article servi.');
                 }
 
                 if ($data['quantity'] === 0) {
@@ -275,23 +280,49 @@ class OrderController extends Controller
                     $order->logActivity('item_removed', "{$itemName} supprimé de la commande");
                     $item->delete();
                 } else {
-                    $wasServed = $item->status === 'done';
-                    $item->update([
-                        'quantity' => $data['quantity'],
-                        'subtotal' => $item->unit_price * $data['quantity'],
-                        'notes'    => $data['notes'] ?? $item->notes,
-                        'status'   => ($data['quantity'] > $item->quantity && $wasServed) ? 'pending' : $item->status,
-                    ]);
+                    $oldQty = $item->quantity;
+                    $wasServed = in_array($item->status, ['done', 'preparing', 'served']);
 
-                    $itemName = $item->product?->name ?? $item->notes ?? 'Article';
-                    $order->logActivity('item_updated', "{$itemName} : qté → {$data['quantity']}");
+                    if ($data['quantity'] > $oldQty && $wasServed) {
+                        // Quantité augmentée sur un article déjà en cuisine/servi :
+                        // On garde l'article existant tel quel et on crée un NOUVEL item 
+                        // avec uniquement la quantité supplémentaire en statut 'pending'.
+                        // Ainsi, seul le delta sera imprimé lors du prochain envoi en cuisine.
+                        $delta = $data['quantity'] - $oldQty;
+                        $newItem = $order->items()->create([
+                            'product_id' => $item->product_id,
+                            'quantity'   => $delta,
+                            'unit_price' => $item->unit_price,
+                            'subtotal'   => $item->unit_price * $delta,
+                            'notes'      => $data['notes'] ?? $item->notes,
+                            'course'     => $item->course,
+                            'status'     => 'pending',
+                        ]);
+                        $modifiedItemIds[] = $newItem->id;
+
+                        $itemName = $item->product?->name ?? $item->notes ?? 'Article';
+                        $order->logActivity('item_updated', "{$itemName} : +{$delta} supplémentaire(s) à envoyer en cuisine");
+                    } else {
+                        // Quantité diminuée ou article pas encore envoyé → mise à jour directe
+                        $item->update([
+                            'quantity' => $data['quantity'],
+                            'subtotal' => $item->unit_price * $data['quantity'],
+                            'notes'    => $data['notes'] ?? $item->notes,
+                        ]);
+
+                        $itemName = $item->product?->name ?? $item->notes ?? 'Article';
+                        $order->logActivity('item_updated', "{$itemName} : qté → {$data['quantity']}");
+                    }
                 }
             }
 
             $order->recalculate();
         });
 
-        return response()->json($order->fresh(['items.product', 'items.modifiers']));
+        return response()->json([
+            'order' => $order->fresh(['items.product', 'items.modifiers']),
+            'modified_item_ids' => $modifiedItemIds,
+        ]);
     }
 
     public function addItems(Request $request, Order $order)

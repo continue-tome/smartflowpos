@@ -146,6 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dépenses de caisse
     Route::get('expenses',              [Api\ExpenseController::class, 'index']);
     Route::post('expenses',             [Api\ExpenseController::class, 'store']);
+    Route::put('expenses/{expense}',    [Api\ExpenseController::class, 'update']);
     Route::delete('expenses/{expense}', [Api\ExpenseController::class, 'destroy']);
     Route::get('expenses/summary',      [Api\ExpenseController::class, 'summary']);
 
