@@ -35,7 +35,7 @@ class TicketPrintService
             ])->toArray();
             $lineTotal = ($item->unit_price * $item->quantity) + collect($modifiers)->sum('extra_price') * $item->quantity;
             return [
-                'name' => $item->product->name, 
+                'name' => $item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE', 
                 'quantity' => $item->quantity, 
                 'unit_price' => $item->unit_price, 
                 'unit_fmt' => $formatAmount($item->unit_price), 
@@ -160,7 +160,7 @@ class TicketPrintService
                 <tr style='border-bottom: 1px dashed #000;'>
                     <td style='vertical-align: top; padding: 4px 0; font-size: 18px; font-weight: bold;'>x{$item->quantity}</td>
                     <td style='padding: 4px 0; font-size: 16px; font-weight: bold;'>
-                        " . strtoupper($item->product->name) . "
+                        " . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "
                         " . ($item->notes ? "<div style='font-size: 12px; font-weight: bold; font-style: italic;'>! {$item->notes}</div>" : "") . "
                     </td>
                 </tr>")->implode('') . "
@@ -393,7 +393,7 @@ class TicketPrintService
             if ($item->status === 'cancelled') continue;
             $html .= "
                 <tr>
-                    <td style='padding: 5px; border: 1px solid #000;'>" . strtoupper($item->product->name) . "</td>
+                    <td style='padding: 5px; border: 1px solid #000;'>" . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "</td>
                     <td style='padding: 5px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
                     <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
                     <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price * $item->quantity, 0, ',', ' ') . "</td>
@@ -769,7 +769,7 @@ class TicketPrintService
                 $grandTotal += $lineTotal;
                 $html .= "
                 <tr>
-                    <td style='padding: 5px; border: 1px solid #000;'>" . strtoupper($item->product->name) . "</td>
+                    <td style='padding: 5px; border: 1px solid #000;'>" . strtoupper($item->product?->name ?? $item->notes ?? 'ARTICLE LIBRE') . "</td>
                     <td style='padding: 5px; text-align: center; border: 1px solid #000;'>{$item->quantity}</td>
                     <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($item->unit_price, 0, ',', ' ') . "</td>
                     <td style='padding: 5px; text-align: right; border: 1px solid #000;'>" . number_format($lineTotal, 0, ',', ' ') . "</td>
