@@ -31,6 +31,7 @@ class Order extends Model
         'sent_to_kitchen_at' => 'datetime',
         'served_at'       => 'datetime',
         'paid_at'         => 'datetime',
+        'created_at'      => 'string',
     ];
 
     /**

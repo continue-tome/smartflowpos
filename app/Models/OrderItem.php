@@ -19,6 +19,7 @@ class OrderItem extends Model
         'sent_at'     => 'datetime',
         'prepared_at' => 'datetime',
         'served_at'   => 'datetime',
+        'created_at'  => 'string',
     ];
 
     protected function serializeDate(\DateTimeInterface $date): string

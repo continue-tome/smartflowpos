@@ -29,6 +29,7 @@ class CakeOrder extends Model
         'delivery_date'   => 'date',
         'is_paid'         => 'boolean',
         'paid_at'         => 'datetime',
+        'created_at'      => 'string',
     ];
 
     protected function serializeDate(\DateTimeInterface $date): string
