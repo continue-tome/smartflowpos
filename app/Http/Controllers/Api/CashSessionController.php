@@ -196,12 +196,17 @@ class CashSessionController extends Controller
             ->pluck('total', 'method')
             ->toArray();
 
-        // Normaliser toutes les méthodes
-        $methods = ['cash', 'card', 'wave', 'orange_money', 'momo', 'other'];
-        $totals  = [];
-        foreach ($methods as $m) {
-            $totals[$m] = round($rows[$m] ?? 0, 2);
+        $totals = [];
+        // On récupère toutes les méthodes existantes dans $rows pour être dynamique
+        foreach ($rows as $method => $amount) {
+            $totals[$method] = round($amount, 2);
         }
+
+        // Si cash n'y est pas, on l'initialise à 0 (utile pour le calcul du expected_amount en bas)
+        if (!isset($totals['cash'])) {
+            $totals['cash'] = 0;
+        }
+
         $totals['grand_total'] = array_sum($totals);
         return $totals;
     }
