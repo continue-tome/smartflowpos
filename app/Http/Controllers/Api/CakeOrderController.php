@@ -164,8 +164,8 @@ class CakeOrderController extends Controller
         abort_if($cakeOrder->is_paid, 422, 'Commande déjà encaissée.');
 
         $request->validate([
-            'payment_method'    => 'required_without:method|in:cash,card,wave,orange_money,momo,moov,mixx,bank,other',
-            'method'            => 'required_without:payment_method|in:cash,card,wave,orange_money,momo,moov,mixx,bank,other',
+            'payment_method'    => 'required_without:method|in:cash,card,wave,orange_money,momo,moov,tmoney,mixx,bank,other',
+            'method'            => 'required_without:payment_method|in:cash,card,wave,orange_money,momo,moov,tmoney,mixx,bank,other',
             'payment_reference' => 'nullable|string|max:100',
             'amount_paid'       => 'required_without:amount|numeric|min:0',
             'amount'            => 'required_without:amount_paid|numeric|min:0',

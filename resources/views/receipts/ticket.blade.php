@@ -29,20 +29,6 @@
     overflow: hidden;
     position: relative;
   }
-  .receipt-wrap .paid-stamp {
-    position: absolute;
-    top: 45%; left: 50%;
-    transform: translate(-50%, -50%) rotate(-30deg);
-    font-size: 32px; font-weight: 900;
-    color: #000;
-    border: 4px solid #000;
-    padding: 10px 25px;
-    text-transform: uppercase;
-    z-index: 10;
-    opacity: 0.25;
-    border-radius: 4px;
-    -webkit-print-color-adjust: exact;
-  }
   .receipt-wrap .given-change-box {
     background: #fff; /* Fond Blanc */
     border: 1px solid #000;
@@ -76,10 +62,6 @@
 @endif
 
 <div class="receipt-wrap">
-  @if($receipt['order']['paid_at'])
-  <div class="paid-stamp">PAYÉ</div>
-  @endif
-  
   <div class="center">
     <div class="bold xlarge">{{ $receipt['restaurant']['name'] }}</div>
     @if($receipt['restaurant']['receipt_subtitle'] ?? null)
