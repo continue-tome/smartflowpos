@@ -190,12 +190,17 @@ class ReportController extends Controller
             return $item->product?->category?->destination ?? 'kitchen';
         })->map(function ($group) {
             return [
-                'revenue' => (float) $group->sum('subtotal'),
+                'revenue' => (float) $group->sum(function ($item) {
+                    $orderSubtotal = (float) ($item->order->subtotal ?? 0);
+                    $discount = (float) ($item->order->discount_amount ?? 0);
+                    $rate = $orderSubtotal > 0 ? $discount / $orderSubtotal : 0;
+                    return $item->subtotal * (1 - $rate);
+                }),
                 'count'   => $group->sum('quantity')
             ];
         });
 
-        // Filtrer par destination via la collection (plus sûr si les joins SQL ont des ambiguïtés)
+        // Filtrer par destination via la collection
         if ($request->destination && $request->destination !== 'all') {
             $items = $items->filter(function ($item) use ($request) {
                 return ($item->product?->category?->destination ?? 'kitchen') === $request->destination;
@@ -205,7 +210,12 @@ class ReportController extends Controller
         $summary = [
             'items_count'   => $items->sum('quantity'),
             'orders_count'  => $items->unique('order_id')->count(),
-            'total_revenue' => (float) $items->sum('subtotal')
+            'total_revenue' => (float) $items->sum(function ($item) {
+                $orderSubtotal = (float) ($item->order->subtotal ?? 0);
+                $discount = (float) ($item->order->discount_amount ?? 0);
+                $rate = $orderSubtotal > 0 ? $discount / $orderSubtotal : 0;
+                return $item->subtotal * (1 - $rate);
+            })
         ];
 
         return response()->json([
@@ -213,7 +223,7 @@ class ReportController extends Controller
             'items'   => $items->values(),
             'summary' => $summary,
             'summary_by_destination' => $summaryByDestination,
-            'total_all' => (float) $allItems->sum('subtotal')
+            'total_all' => (float) $allItems->unique('order_id')->sum(fn($item) => $item->order->total)
         ]);
     }
 
