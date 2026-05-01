@@ -271,7 +271,8 @@ class OrderController extends Controller
                 }
 
                 if ($data['quantity'] === 0) {
-                    $order->logActivity('item_removed', "{$item->product->name} supprimé de la commande");
+                    $itemName = $item->product?->name ?? $item->notes ?? 'Article';
+                    $order->logActivity('item_removed', "{$itemName} supprimé de la commande");
                     $item->delete();
                 } else {
                     $wasServed = $item->status === 'done';
@@ -282,7 +283,8 @@ class OrderController extends Controller
                         'status'   => ($data['quantity'] > $item->quantity && $wasServed) ? 'pending' : $item->status,
                     ]);
 
-                    $order->logActivity('item_updated', "{$item->product->name} : qté → {$data['quantity']}");
+                    $itemName = $item->product?->name ?? $item->notes ?? 'Article';
+                    $order->logActivity('item_updated', "{$itemName} : qté → {$data['quantity']}");
                 }
             }
 
