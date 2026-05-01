@@ -203,13 +203,6 @@ class CakeOrderController extends Controller
 
         $cakeOrder->logActivity('cake_order_paid', "Commande #{$cakeOrder->order_number} encaissée ({$pm})");
 
-        // Impression automatique sur l'IP de la caisse
-        try {
-            app(\App\Services\EscPosPrintService::class)->printCakeOrder($cakeOrder->fresh());
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Échec impression gâteau auto: " . $e->getMessage());
-        }
-
         return response()->json([
             'message' => 'Commande encaissée avec succès.',
             'order'   => $cakeOrder->fresh(),
