@@ -17,7 +17,9 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = Order::with([
+        $includeCakes = $request->has('include_cakes') || $request->type === 'cakes';
+
+        $query = Order::with([
             'table', 'waiter', 'items.product',
             'cancellations' => fn($q) => $q->where('status', 'pending'),
             'items.cancellations' => fn($q) => $q->where('status', 'pending')
@@ -27,9 +29,36 @@ class OrderController extends Controller
             ->when($request->table_id, fn($q) => $q->where('table_id', $request->table_id))
             ->when($request->search, fn($q) => $q->where('order_number', 'like', "%{$request->search}%"))
             ->when($request->date, fn($q) => $q->whereDate('created_at', $request->date))
-            ->when($request->type, fn($q) => $q->where('type', $request->type))
-            ->latest()
-            ->paginate(30);
+            ->when($request->type && $request->type !== 'cakes', fn($q) => $q->where('type', $request->type));
+
+        $orders = $query->latest()->paginate($request->per_page ?? 30);
+
+        // Si on demande les gâteaux ou si on est en vue globale
+        if ($includeCakes) {
+            $cakes = \App\Models\CakeOrder::where('restaurant_id', $request->user()->restaurant_id)
+                ->when($request->status, fn($q) => $q->where('status', $request->status))
+                ->when($request->search, fn($q) => $q->where('order_number', 'like', "%{$request->search}%"))
+                ->when($request->date, fn($q) => $q->whereDate('delivery_date', $request->date))
+                ->latest()
+                ->get()
+                ->map(function($cake) {
+                    $cake->is_cake = true;
+                    $cake->type = 'cakes'; // Pour compatibilité frontend
+                    return $cake;
+                });
+
+            // On fusionne les gâteaux dans la liste (simplifié pour le frontend)
+            $items = collect($orders->items())->concat($cakes)->sortByDesc('created_at')->values();
+            
+            // On recrée une structure de pagination manuelle pour le frontend
+            return response()->json([
+                'data' => $items,
+                'total' => $orders->total() + $cakes->count(),
+                'per_page' => $orders->perPage(),
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+            ]);
+        }
 
         return response()->json($orders);
     }
@@ -81,7 +110,9 @@ class OrderController extends Controller
             'customer_name'  => 'nullable|string|max:150',
             'customer_phone' => 'nullable|string|max:20',
             'items'          => 'required|array|min:1',
-            'items.*.product_id'   => 'required|exists:products,id',
+            'items.*.product_id'   => 'nullable|exists:products,id',
+            'items.*.custom_name'  => 'nullable|string|max:200',
+            'items.*.unit_price'   => 'nullable|numeric|min:0',
             'items.*.quantity'     => 'required|integer|min:1',
             'items.*.notes'        => 'nullable|string',
             'items.*.course'       => 'integer|min:1',
@@ -104,14 +135,20 @@ class OrderController extends Controller
             ]);
 
             foreach ($request->items as $itemData) {
-                $product = Product::findOrFail($itemData['product_id']);
+                $productId = $itemData['product_id'] ?? null;
+                $unitPrice = $itemData['unit_price'] ?? 0;
+                
+                if ($productId) {
+                    $product = Product::findOrFail($productId);
+                    $unitPrice = $product->price;
+                }
 
                 $item = $order->items()->create([
-                    'product_id' => $product->id,
+                    'product_id' => $productId,
                     'quantity'   => $itemData['quantity'],
-                    'unit_price' => $product->price,
-                    'subtotal'   => $product->price * $itemData['quantity'],
-                    'notes'      => $itemData['notes'] ?? null,
+                    'unit_price' => $unitPrice,
+                    'subtotal'   => $unitPrice * $itemData['quantity'],
+                    'notes'      => $itemData['notes'] ?? $itemData['custom_name'] ?? null,
                     'course'     => $itemData['course'] ?? 1,
                     'status'     => 'pending',
                 ]);

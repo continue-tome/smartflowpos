@@ -222,6 +222,6 @@ class ExpenseController extends Controller
         $pdfContent = app(\App\Services\TicketPrintService::class)->generateExpenseA4Pdf($expense);
         return response($pdfContent)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="Recu_Depense_EXP_' . $expense->id . '.pdf"');
+            ->header('Content-Disposition', 'inline; filename="Recu_Depense_EXP_' . $expense->id . '.pdf"');
     }
 }
