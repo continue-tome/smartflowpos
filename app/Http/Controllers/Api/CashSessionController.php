@@ -79,12 +79,11 @@ class CashSessionController extends Controller
 
         $closingAmount = (float)$request->amount_to_bank + (float)$request->remaining_amount;
 
-        // Calcul des totaux par méthode de paiement
         $totals   = $this->computeTotals($session);
         $cashIn   = $totals['cash'] ?? 0;
-        $expected = $session->opening_amount + $cashIn;
-        $diff     = $closingAmount - $expected;
         $expenses = Expense::where('cash_session_id', $session->id)->sum('amount');
+        $expected = $session->opening_amount + $cashIn - $expenses;
+        $diff     = $closingAmount - $expected;
 
         DB::transaction(function () use ($session, $request, $totals, $expected, $diff, $expenses, $closingAmount) {
             $session->update([
