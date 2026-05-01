@@ -822,7 +822,7 @@ class TicketPrintService
         return Pdf::loadHTML($html)->setPaper('a4')->output();
     }
 
-    private function methodLabel(string $method): string { return match($method) { 'cash' => 'Espèces', 'card' => 'Carte', 'wave' => 'Wave', 'orange_money' => 'Orange', 'momo' => 'Momo', default => 'Autre' }; }
+    private function methodLabel(string $method): string { return match($method) { 'cash' => 'Espèces', 'card' => 'Carte', 'wave' => 'Wave', 'moov' => 'Moov', 'mixx' => 'Mixx', 'orange_money' => 'Orange', 'momo' => 'Momo', default => ucfirst($method) }; }
     private function typeLabel(string $type): string { 
         return match($type) { 
             'dine_in' => 'Sur place', 

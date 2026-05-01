@@ -52,7 +52,7 @@
   .receipt-wrap td       { padding: 1px 0; vertical-align: top; color: #000; }
   .receipt-wrap .td-right { text-align: right; white-space: nowrap; padding-left: 4px; }
   .receipt-wrap .logo    { max-width: 80px; max-height: 60px; display: block; margin: 0 auto 4px; filter: grayscale(100%); }
-  .receipt-wrap .total-row td { font-weight: bold; font-size: 13px; border-top: 1px solid #000; padding-top: 3px; margin-top: 2px; }
+  .receipt-wrap .total-row td { font-weight: bold; font-size: 13px; border-top: 1px dashed #000; padding-top: 3px; margin-top: 2px; }
   .receipt-wrap .mod-line { padding-left: 8px; font-size: 9px; font-weight: bold; }
   .receipt-wrap .footer-msg { font-size: 11px; font-weight: bold; margin-top: 5px; }
 </style>
@@ -86,9 +86,8 @@
   </table>
 
   <div class="divider"></div>
-
   <table>
-    <thead><tr style="border-bottom:1px solid #000;"><td class="bold">Art</td><td class="td-right bold">Qt</td><td class="td-right bold">PU</td><td class="td-right bold">Tot</td></tr></thead>
+    <thead><tr><td class="bold">Art</td><td class="td-right bold">Qt</td><td class="td-right bold">PU</td><td class="td-right bold">Tot</td></tr></thead>
     <tbody>
       @foreach($receipt['lines'] as $line)
       <tr>
@@ -108,7 +107,6 @@
   </table>
 
   <div class="divider"></div>
-
   <table style="font-size:10px; line-height: 1.2; font-weight: bold;">
     <tr><td>Sous-total</td><td class="td-right">{{ $receipt['totals']['subtotal_fmt'] }}</td></tr>
     @if($receipt['totals']['discount'] > 0)
@@ -116,6 +114,16 @@
     @endif
     <tr><td>TVA ({{ $receipt['totals']['vat_rate'] }}%)</td><td class="td-right">{{ $receipt['totals']['vat_fmt'] }}</td></tr>
     <tr class="total-row"><td class="large">TOTAL NET</td><td class="td-right large">{{ $receipt['totals']['total_fmt'] }}</td></tr>
+    @if(!empty($receipt['payments']))
+      <tr>
+        <td style="padding-top: 4px;">Paiement :</td>
+        <td class="td-right" style="padding-top: 4px;">
+          @foreach($receipt['payments'] as $p)
+            {{ $p['method'] }}{{ !$loop->last ? ', ' : '' }}
+          @endforeach
+        </td>
+      </tr>
+    @endif
   </table>
 
   @if($receipt['totals']['change'] > 0 || collect($receipt['payments'])->sum('amount_given') > 0)
