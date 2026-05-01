@@ -29,12 +29,16 @@ class CakeOrder extends Model
         'delivery_date'   => 'date',
         'is_paid'         => 'boolean',
         'paid_at'         => 'datetime',
-        'created_at'      => 'string',
     ];
 
     protected function serializeDate(\DateTimeInterface $date): string
     {
         return $date->format('Y-m-d H:i:s');
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return $value;
     }
 
     public function restaurant() { return $this->belongsTo(Restaurant::class); }

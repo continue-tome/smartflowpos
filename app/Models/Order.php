@@ -31,7 +31,6 @@ class Order extends Model
         'sent_to_kitchen_at' => 'datetime',
         'served_at'       => 'datetime',
         'paid_at'         => 'datetime',
-        'created_at'      => 'string',
     ];
 
     /**
@@ -40,6 +39,11 @@ class Order extends Model
     protected function serializeDate(\DateTimeInterface $date): string
     {
         return $date->format('Y-m-d H:i:s');
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return $value;
     }
 
     // Relations
@@ -78,7 +82,7 @@ class Order extends Model
             $gozemDiscount = ($subtotal * $gozemRate / 100);
             // On utilise la remise Gozem si elle est supérieure à une remise manuelle éventuelle
             // ou on l'applique systématiquement selon la demande du client
-            $this->discount_amount = $gozemDiscount;
+            $this->discount_amount = (string)$gozemDiscount;
             $this->discount_reason = "GOZEM"; // On met un label court
             $total = max(0, (float) $subtotal - (float) $this->discount_amount);
         }

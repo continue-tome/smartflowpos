@@ -19,12 +19,16 @@ class OrderItem extends Model
         'sent_at'     => 'datetime',
         'prepared_at' => 'datetime',
         'served_at'   => 'datetime',
-        'created_at'  => 'string',
     ];
 
     protected function serializeDate(\DateTimeInterface $date): string
     {
         return $date->format('Y-m-d H:i:s');
+    }
+
+    public function getCreatedAtAttribute($value)
+    {
+        return $value;
     }
 
     public function order()     { return $this->belongsTo(Order::class); }
