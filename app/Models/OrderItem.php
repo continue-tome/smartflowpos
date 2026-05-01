@@ -21,6 +21,11 @@ class OrderItem extends Model
         'served_at'   => 'datetime',
     ];
 
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
+
     public function order()     { return $this->belongsTo(Order::class); }
     public function product()   { return $this->belongsTo(Product::class); }
     public function modifiers() { return $this->hasMany(OrderItemModifier::class); }

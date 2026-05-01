@@ -33,6 +33,14 @@ class Order extends Model
         'paid_at'         => 'datetime',
     ];
 
+    /**
+     * Empêcher la conversion de fuseau horaire lors de la sérialisation JSON
+     */
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
+
     // Relations
     public function restaurant()   { return $this->belongsTo(Restaurant::class); }
     public function table()        { return $this->belongsTo(Table::class); }
