@@ -80,8 +80,8 @@ class TicketPrintService
             'order' => [
                 'id' => $order->id, 
                 'number' => $order->order_number, 
-                'date' => $order->created_at->format('d/m/Y'), 
-                'time' => $order->created_at->format('H:i'), 
+                'date' => \Carbon\Carbon::parse($order->created_at)->format('d/m/Y'), 
+                'time' => \Carbon\Carbon::parse($order->created_at)->format('H:i'), 
                 'paid_at' => $order->paid_at?->format('d/m/Y H:i'), 
                 'table_number' => $order->table?->number, 
                 'covers' => $order->covers, 
@@ -182,7 +182,7 @@ class TicketPrintService
     public function expenseReceiptHtml($expense): string
     {
         $restaurant = $expense->restaurant;
-        $date = $expense->created_at->format('d/m/y H:i');
+        $date = \Carbon\Carbon::parse($expense->created_at)->format('d/m/y H:i');
         $id = str_pad($expense->id, 4, '0', STR_PAD_LEFT);
 
         return "
@@ -360,8 +360,8 @@ class TicketPrintService
     {
         $restaurant = $order->restaurant;
         $customer = $order->customer_name ?: 'Client de Passage';
-        $date = $order->created_at->format('d/m/Y');
-        $time = $order->created_at->format('H:i');
+        $date = \Carbon\Carbon::parse($order->created_at)->format('d/m/Y');
+        $time = \Carbon\Carbon::parse($order->created_at)->format('H:i');
         $typeLabel = $this->typeLabel($order->type);
         $waiter = $order->waiter?->first_name ?? 'N/A';
 
@@ -635,7 +635,7 @@ class TicketPrintService
     {
         $restaurant = $expense->restaurant;
         $id = str_pad($expense->id, 6, '0', STR_PAD_LEFT);
-        $date = $expense->created_at->format('d/m/Y à H:i');
+        $date = \Carbon\Carbon::parse($expense->created_at)->format('d/m/Y à H:i');
         $amount = number_format((float)$expense->amount, 0, ',', ' ');
 
         return "

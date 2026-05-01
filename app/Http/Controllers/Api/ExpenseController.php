@@ -207,7 +207,7 @@ class ExpenseController extends Controller
             <div class='container'>
                 <div class='header'>
                     <div class='title'>Justificatif de Sortie de Caisse</div>
-                    <div class='ref'>Référence : EXP-" . str_pad($expense->id, 6, '0', STR_PAD_LEFT) . " • Émis le " . $expense->created_at->format('d/m/Y à H:i') . "</div>
+                    <div class='ref'>Référence : EXP-" . str_pad($expense->id, 6, '0', STR_PAD_LEFT) . " • Émis le " . \Carbon\Carbon::parse($expense->created_at)->format('d/m/Y à H:i') . "</div>
                 </div>
 
                 <table class='table-info'>

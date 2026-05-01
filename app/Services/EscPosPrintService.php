@@ -169,7 +169,7 @@ class EscPosPrintService
                 $printer->setEmphasis(true);
                 $printer->text("TICKET DE CAISSE #" . $order->order_number . "\n");
                 $printer->setEmphasis(false);
-                $printer->text("Date: " . $order->created_at->format('d/m/Y H:i') . "\n");
+                $printer->text("Date: " . \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i') . "\n");
                 $printer->text(str_repeat('-', 42) . "\n");
 
                 // Items
@@ -333,7 +333,7 @@ class EscPosPrintService
             $printer->text("DETAI DES CONSOMMATIONS:\n");
             $printer->setTextSize(1, 1);
             foreach ($tab->orders as $order) {
-                $date = $order->created_at->format('d/m/y');
+                $date = \Carbon\Carbon::parse($order->created_at)->format('d/m/y');
                 $num = substr($order->order_number, -4);
                 $amt = number_format($order->total, 0, '.', ' ');
                 $printer->text("{$date} #{$num} : {$amt} F\n");

@@ -22,6 +22,11 @@ class Expense extends Model
         'amount' => 'decimal:2',
     ];
 
+    public function getCreatedAtAttribute($value)
+    {
+        return $value;
+    }
+
     public function restaurant()   { return $this->belongsTo(Restaurant::class); }
     public function cashSession()  { return $this->belongsTo(CashSession::class); }
     public function user()         { return $this->belongsTo(User::class); }

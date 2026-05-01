@@ -155,7 +155,7 @@ class DataExportService
                 ->chunk(100, function($expenses) use ($cb) {
                     foreach ($expenses as $e) {
                         $cb([
-                            $e->created_at->format('d/m/Y'),
+                            \Carbon\Carbon::parse($e->created_at)->format('d/m/Y'),
                             $e->description,
                             $e->category,
                             $e->amount,
@@ -175,7 +175,7 @@ class DataExportService
                         $cb([
                             $o->id, $o->order_number, $o->type, $o->status, $o->customer_name, $o->covers,
                             $o->subtotal, $o->discount_amount, $o->vat_amount, $o->total,
-                            $o->created_at->format('d/m/Y H:i'),
+                            \Carbon\Carbon::parse($o->created_at)->format('d/m/Y H:i'),
                             $o->paid_at ? $o->paid_at->format('d/m/Y H:i') : ''
                         ]);
                     }
@@ -194,7 +194,7 @@ class DataExportService
                             $item->product->name ?? 'N/A',
                             $item->quantity,
                             $item->subtotal,
-                            $item->created_at->format('d/m/Y H:i')
+                            \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i')
                         ]);
                     }
                 });
