@@ -35,7 +35,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
         @page { margin: 40px; }
-        body { font-family: 'Helvetica', sans-serif; color: #334155; font-size: 11px; line-height: 1.5; }
+        body { font-family: 'DejaVu Sans', sans-serif; color: #334155; font-size: 11px; line-height: 1.5; }
         .header { border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px; }
         .restaurant-name { font-size: 20px; font-weight: bold; color: #1e293b; text-transform: uppercase; }
         .report-title { font-size: 14px; color: #f97316; font-weight: bold; margin-top: 5px; }
