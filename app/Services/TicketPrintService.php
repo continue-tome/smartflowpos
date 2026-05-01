@@ -365,6 +365,13 @@ class TicketPrintService
         $typeLabel = $this->typeLabel($order->type);
         $waiter = $order->waiter?->first_name ?? 'N/A';
 
+        $logoPath = public_path('img/logo.png');
+        $logoHtml = '';
+        if (file_exists($logoPath)) {
+            $logoData = base64_encode(file_get_contents($logoPath));
+            $logoHtml = "<img src='data:image/png;base64,{$logoData}' style='max-height: 60px; margin-bottom: 10px;' /><br>";
+        }
+
         $html = "
         <div style='font-family: Arial, sans-serif; background: #fff; color: #000; padding: 30px 40px; min-height: 260mm;'>
 
@@ -372,6 +379,7 @@ class TicketPrintService
             <table style='width: 100%; margin-bottom: 25px;'>
                 <tr>
                     <td style='vertical-align: top; width: 60%;'>
+                        {$logoHtml}
                         <h1 style='margin: 0 0 8px 0; font-size: 22px; letter-spacing: 1px;'>" . strtoupper($restaurant->name) . "</h1>
                         <p style='margin: 4px 0; font-size: 13px;'>{$restaurant->address}</p>
                         <p style='margin: 4px 0; font-size: 13px;'>Tél : {$restaurant->phone}</p>

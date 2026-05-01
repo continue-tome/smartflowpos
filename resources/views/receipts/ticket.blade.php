@@ -77,12 +77,12 @@
 
   <div class="divider"></div>
 
-  <table style="font-weight: bold;">
-    <tr><td>RECETTE {{ $receipt['order']['number'] }}</td><td class="td-right">{{ $receipt['order']['date'] }} {{ $receipt['order']['time'] }}</td></tr>
+  <table style="font-weight: bold; font-size: 8px; white-space: nowrap; line-height: 1;">
+    <tr><td style="padding: 0;">REC {{ $receipt['order']['number'] }}</td><td class="td-right" style="padding: 0;">{{ $receipt['order']['date'] }} {{ $receipt['order']['time'] }}</td></tr>
     @if($receipt['order']['table_number'])
-      <tr><td>Table: {{ $receipt['order']['table_number'] }}</td><td class="td-right">Couverts: {{ $receipt['order']['covers'] ?: 1 }}</td></tr>
+      <tr><td style="padding: 0;">Table: {{ $receipt['order']['table_number'] }}</td><td class="td-right" style="padding: 0;">Couverts: {{ $receipt['order']['covers'] ?: 1 }}</td></tr>
     @endif
-    <tr><td>Type: {{ $receipt['order']['type_label'] }}</td><td class="td-right">Serv: {{ $receipt['order']['waiter'] ?: 'N/A' }}</td></tr>
+    <tr><td style="padding: 0;">Type: {{ $receipt['order']['type_label'] }}</td><td class="td-right" style="padding: 0;">Serv: {{ $receipt['order']['waiter'] ?: 'N/A' }}</td></tr>
   </table>
 
   <div class="divider"></div>
