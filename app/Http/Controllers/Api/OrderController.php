@@ -297,27 +297,48 @@ class OrderController extends Controller
         $this->authorizeOrder($request, $order);
 
         $request->validate([
-            'items'              => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.quantity'   => 'required|integer|min:1',
-            'items.*.notes'      => 'nullable|string',
-            'items.*.course'     => 'integer|min:1',
+            'items'                  => 'required|array|min:1',
+            'items.*.product_id'     => 'nullable|exists:products,id',
+            'items.*.custom_name'    => 'nullable|string|max:200',
+            'items.*.unit_price'     => 'nullable|numeric|min:0',
+            'items.*.quantity'       => 'required|integer|min:1',
+            'items.*.notes'          => 'nullable|string',
+            'items.*.course'         => 'integer|min:1',
+            'items.*.modifier_ids'   => 'nullable|array',
+            'items.*.modifier_ids.*' => 'exists:modifiers,id',
         ]);
 
         abort_if(in_array($order->status, ['paid', 'cancelled']), 422, 'Commande finalisée.');
 
         DB::transaction(function () use ($request, $order) {
-            foreach ($request->items as $data) {
-                $product = Product::findOrFail($data['product_id']);
-                $order->items()->create([
-                    'product_id' => $product->id,
-                    'quantity'   => $data['quantity'],
-                    'unit_price' => $product->price,
-                    'subtotal'   => $product->price * $data['quantity'],
-                    'notes'      => $data['notes'] ?? null,
-                    'course'     => $data['course'] ?? 1,
+            foreach ($request->items as $itemData) {
+                $productId = $itemData['product_id'] ?? null;
+                $unitPrice = $itemData['unit_price'] ?? 0;
+                
+                if ($productId) {
+                    $product = Product::findOrFail($productId);
+                    $unitPrice = $product->price;
+                }
+
+                $item = $order->items()->create([
+                    'product_id' => $productId,
+                    'quantity'   => $itemData['quantity'],
+                    'unit_price' => $unitPrice,
+                    'subtotal'   => $unitPrice * $itemData['quantity'],
+                    'notes'      => $itemData['notes'] ?? $itemData['custom_name'] ?? null,
+                    'course'     => $itemData['course'] ?? 1,
                     'status'     => 'pending',
                 ]);
+
+                if (!empty($itemData['modifier_ids'])) {
+                    foreach ($itemData['modifier_ids'] as $modifierId) {
+                        $modifier = \App\Models\Modifier::find($modifierId);
+                        $item->modifiers()->create([
+                            'modifier_id' => $modifierId,
+                            'extra_price' => $modifier?->extra_price ?? 0,
+                        ]);
+                    }
+                }
             }
             $order->recalculate();
 
