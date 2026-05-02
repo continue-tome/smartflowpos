@@ -17,7 +17,7 @@ class FloorAndTableSeeder extends Seeder
             return;
         }
 
-        // Création de l'étage unique
+        // Création de l'étage unique (Le Floor possède le restaurant_id)
         $floor = Floor::firstOrCreate([
             'restaurant_id' => $restaurant->id,
             'name' => 'SALLE PRINCIPALE'
@@ -25,13 +25,12 @@ class FloorAndTableSeeder extends Seeder
 
         $this->command->info('Création de 100 tables dans la SALLE PRINCIPALE...');
 
-        // Création des 100 tables
+        // Création des 100 tables (On retire restaurant_id qui n'existe pas dans cette table)
         for ($i = 1; $i <= 100; $i++) {
             Table::firstOrCreate(
                 [
-                    'restaurant_id' => $restaurant->id,
-                    'floor_id'      => $floor->id,
-                    'number'        => (string)$i
+                    'floor_id' => $floor->id,
+                    'number'   => (string)$i
                 ],
                 [
                     'capacity' => 4,
@@ -40,6 +39,6 @@ class FloorAndTableSeeder extends Seeder
             );
         }
 
-        $this->command->info('Succès : 100 tables ont été créées.');
+        $this->command->info('Succès : 100 tables ont été créées dans la SALLE PRINCIPALE.');
     }
 }
