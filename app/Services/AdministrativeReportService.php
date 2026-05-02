@@ -61,9 +61,10 @@ class AdministrativeReportService extends FPDF
         $orderStats = Order::where('restaurant_id', $restaurantId)
             ->whereDate('created_at', $today)
             ->where('status', '!=', 'cancelled')
-            ->selectRaw('COUNT(*) as count, SUM(total) as revenue, SUM(covers) as covers, SUM(vat_amount) as vat')->first();
+            ->selectRaw('COUNT(*) as count, SUM(total) as revenue, SUM(covers) as covers, SUM(vat_amount) as vat, SUM(discount_amount) as total_discounts')->first();
 
         $restaurant_ca = (float)($orderStats->revenue ?? 0);
+        $total_discounts = (float)($orderStats->total_discounts ?? 0);
 
         $cake_value_today = \App\Models\CakeOrder::where('restaurant_id', $restaurantId)
             ->whereDate('created_at', $today)
@@ -126,6 +127,7 @@ class AdministrativeReportService extends FPDF
             'cake_revenue'   => (float)$cake_value_today,
             'expenses'       => $expenses,
             'order_stats'    => $orderStats,
+            'total_discounts' => $total_discounts,
             'unpaid_ardoises_today' => (float)$unpaid_from_today,
             'past_debts_collected_today' => (float)$past_debts_collected_today,
         ];
@@ -183,7 +185,7 @@ class AdministrativeReportService extends FPDF
         $this->Cell(70, 8, number_format($caTotal, 0, ',', ' ') . " FCFA", 0, 1, 'R');
 
         $this->SetFont('Arial', '', 11);
-        $this->Cell(120, 8, $this->s("   - Ventes Restaurant / Cuisine:"), 0, 0);
+        $this->Cell(120, 8, $this->s("   - Ventes Globales (Restau + Bar + Pizza):"), 0, 0);
         $this->Cell(70, 8, number_format($this->data['restaurant_ca'], 0, ',', ' ') . " FCFA", 0, 1, 'R');
 
         $this->Cell(120, 8, $this->s("   - Ventes Pâtisserie / Gâteaux:"), 0, 0);
@@ -265,13 +267,22 @@ class AdministrativeReportService extends FPDF
             $this->Cell(70, 10, number_format($amount, 0, ',', ' ') . " F", 1, 1, 'R');
         }
 
-        // Différence due aux remises ou aux frais de livraison
-        $annexes = $this->data['restaurant_ca'] - $sumOfSections;
-        if (round($annexes, 2) != 0) {
+        // Affichage des REMISES RÉELLES
+        $realDiscounts = $this->data['total_discounts'];
+        if ($realDiscounts > 0) {
             $this->SetFont('Arial', 'I', 10);
-            $this->Cell(120, 10, $this->s("Remises et Ajustements"), 1, 0, 'L');
-            $this->Cell(70, 10, number_format($annexes, 0, ',', ' ') . " F", 1, 1, 'R');
+            $this->SetTextColor(200, 0, 0); // Rouge pour les remises
+            $this->Cell(120, 10, $this->s("Total des Remises accordées"), 1, 0, 'L');
+            $this->Cell(70, 10, "-" . number_format($realDiscounts, 0, ',', ' ') . " F", 1, 1, 'R');
+            $this->SetTextColor(0);
             $this->SetFont('Arial', '', 11);
+        }
+
+        // Écart technique éventuel (Articles sans destination)
+        $others = $this->data['restaurant_ca'] + $realDiscounts - $sumOfSections;
+        if (round($others, 2) > 1) {
+            $this->Cell(120, 10, $this->s("Autres (Ventes non classées)"), 1, 0, 'L');
+            $this->Cell(70, 10, number_format($others, 0, ',', ' ') . " F", 1, 1, 'R');
         }
 
         // Ligne de totalisation pour prouver que Section 2 = Section 1
