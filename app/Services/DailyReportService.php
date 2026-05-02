@@ -197,34 +197,36 @@ class DailyReportService
      */
     public function getReportData(CashSession $session): array
     {
-        $revenueData = \App\Models\Order::whereHas('payments', fn($q) => $q->where('cash_session_id', $session->id))
-            ->selectRaw('SUM(total) as revenue, SUM(vat_amount) as vat')
-            ->first();
-            
-        $totalRevenue = (float)($revenueData->revenue ?? 0);
-        $totalVat = (float)($revenueData->vat ?? 0);
-        $totalExpenses = Expense::where('cash_session_id', $session->id)->sum('amount');
-        $restaurant = $session->restaurant;
+        // 1. Chiffre d'affaires basé sur les PAIEMENTS de cette session (C'est le plus juste)
+        $paymentsQuery = \App\Models\Payment::where('cash_session_id', $session->id);
         
-        $newCredits = \App\Models\Order::whereHas('customerTabs')
-            ->whereBetween('paid_at', [$session->opened_at, $session->closed_at ?? now()])
-            ->sum('total');
-
-        $tabDetails = \App\Models\Order::whereHas('customerTabs')
-            ->with(['customerTabs'])
-            ->whereBetween('paid_at', [$session->opened_at, $session->closed_at ?? now()])
-            ->get();
-
-        $payments = \App\Models\Payment::where('cash_session_id', $session->id)
-            ->selectRaw('method, SUM(amount) as total, COUNT(*) as count')
+        $totalRevenue = (float)$paymentsQuery->sum('amount');
+        $payments = $paymentsQuery->selectRaw('method, SUM(amount) as total, COUNT(*) as count')
             ->groupBy('method')
             ->get();
 
+        // 2. Dépenses
+        $totalExpenses = Expense::where('cash_session_id', $session->id)->sum('amount');
+        $restaurant = $session->restaurant;
+
+        // 3. Ardoises / Crédits (Commandes liées à un client mais payées en "tab")
+        // On cherche les commandes payées durant cette session via la méthode 'tab'
+        $tabDetails = \App\Models\Order::whereHas('payments', function($q) use ($session) {
+                $q->where('cash_session_id', $session->id)->where('method', 'tab');
+            })
+            ->with(['customerTabs'])
+            ->get();
+        $newCredits = $tabDetails->sum('total');
+
+        // 4. Statistiques produits (en évitant les doublons dus aux multiples paiements)
         $productStats = \Illuminate\Support\Facades\DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->join('payments', 'payments.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->where('payments.cash_session_id', $session->id)
+            // On s'assure que l'ordre a au moins un paiement dans cette session
+            ->whereIn('orders.id', function($query) use ($session) {
+                $query->select('order_id')->from('payments')->where('cash_session_id', $session->id)->whereNotNull('order_id');
+            })
+            ->whereNull('order_items.deleted_at')
             ->select('products.name', \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_qty'), \Illuminate\Support\Facades\DB::raw('SUM(order_items.subtotal) as total_amount'))
             ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_amount')
@@ -232,14 +234,20 @@ class DailyReportService
 
         $categoryStats = \Illuminate\Support\Facades\DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->join('payments', 'payments.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->where('payments.cash_session_id', $session->id)
+            ->whereIn('orders.id', function($query) use ($session) {
+                $query->select('order_id')->from('payments')->where('cash_session_id', $session->id)->whereNotNull('order_id');
+            })
+            ->whereNull('order_items.deleted_at')
             ->select('categories.name as category_name', \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_qty'), \Illuminate\Support\Facades\DB::raw('SUM(order_items.subtotal) as total_amount'))
             ->groupBy('categories.id', 'categories.name')
             ->orderByDesc('total_amount')
             ->get();
+
+        $totalVat = (float)\App\Models\Order::whereIn('id', function($q) use ($session) {
+            $q->select('order_id')->from('payments')->where('cash_session_id', $session->id)->whereNotNull('order_id');
+        })->sum('vat_amount');
 
         $logs = \App\Models\ActivityLog::where('restaurant_id', $session->restaurant_id)
             ->where(function($q) use ($session) {
