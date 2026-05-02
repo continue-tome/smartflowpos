@@ -99,7 +99,8 @@ class DailyReportService
         $pdf->Cell(90, 6, "Ouverture de caisse", 'B', 0, 'L');
         $pdf->Cell(90, 6, number_format((float)$session->opening_amount, 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
-        $cashSales = (float)($session->cash_total ?? $data['payments']->where('method', 'cash')->first()?->total ?? 0);
+        // Calcul dynamique si la session n'est pas encore clôturée
+        $cashSales = (float)($session->cash_total > 0 ? $session->cash_total : ($data['payments']->filter(fn($p) => strtolower($p->method) === 'cash')->sum('total') ?? 0));
         $pdf->Cell(90, 6, "Ventes en especes", 'B', 0, 'L');
         $pdf->Cell(90, 6, "+" . number_format($cashSales, 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
@@ -107,10 +108,11 @@ class DailyReportService
         $pdf->Cell(90, 6, utf8_decode("Depenses deduites"), 'B', 0, 'L');
         $pdf->Cell(90, 6, "-" . number_format((float)$data['totalExpenses'], 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
+        $expectedAmount = (float)($session->expected_amount > 0 ? $session->expected_amount : ($session->opening_amount + $cashSales - $data['totalExpenses']));
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFont('Helvetica', 'B', 11);
         $pdf->Cell(90, 8, "MONTANT TOTAL ATTENDU", 'B', 0, 'L');
-        $pdf->Cell(90, 8, number_format((float)$session->expected_amount, 0, ',', ' ') . " FCFA", 'B', 1, 'R');
+        $pdf->Cell(90, 8, number_format($expectedAmount, 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
         $pdf->SetFont('Helvetica', '', 10);
         $pdf->Cell(90, 6, "Verse a la Banque", 'B', 0, 'L');
