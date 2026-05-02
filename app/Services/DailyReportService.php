@@ -260,7 +260,7 @@ class DailyReportService
                 });
             })->with('user')->orderBy('created_at', 'asc')->limit(100)->get();
 
-        $pdfUrl = config('app.url') . "/api/cash-sessions/{$session->id}/report-preview";
+        $pdfUrl = rtrim(config('app.url'), '/') . "/api/cash-sessions/{$session->id}/report";
 
         return [
             'session' => $session,
