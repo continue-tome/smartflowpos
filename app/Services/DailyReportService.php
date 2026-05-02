@@ -99,8 +99,9 @@ class DailyReportService
         $pdf->Cell(90, 6, "Ouverture de caisse", 'B', 0, 'L');
         $pdf->Cell(90, 6, number_format((float)$session->opening_amount, 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
+        $cashSales = (float)($session->cash_total ?? $data['payments']->where('method', 'cash')->first()?->total ?? 0);
         $pdf->Cell(90, 6, "Ventes en especes", 'B', 0, 'L');
-        $pdf->Cell(90, 6, "+" . number_format((float)($session->expected_amount - $session->opening_amount + $data['totalExpenses']), 0, ',', ' ') . " FCFA", 'B', 1, 'R');
+        $pdf->Cell(90, 6, "+" . number_format($cashSales, 0, ',', ' ') . " FCFA", 'B', 1, 'R');
         
         $pdf->SetTextColor(0, 0, 0);
         $pdf->Cell(90, 6, utf8_decode("Depenses deduites"), 'B', 0, 'L');
