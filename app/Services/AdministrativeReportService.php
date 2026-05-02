@@ -216,6 +216,19 @@ class AdministrativeReportService extends FPDF
 
         $this->Cell(120, 7, $this->s("   - Recouvrements (Paiements perçus pour paiements antérieurs):"), 0, 0);
         $this->Cell(70, 7, number_format($this->data['past_debts_collected_today'], 0, ',', ' ') . " FCFA", 0, 1, 'R');
+        
+        // DÉTAIL DES ENCAISSEMENTS (Nouveau)
+        $this->SetFont('Arial', '', 10);
+        foreach ($this->data['payments'] as $p) {
+            $methodMapping = [
+                'cash' => 'Espèces', 'card' => 'Carte Bancaire', 'wave' => 'Wave',
+                'orange_money' => 'Orange Money', 'momo' => 'MTN MoMo', 'moov' => 'Moov Money'
+            ];
+            $lbl = $methodMapping[$p->method] ?? ucfirst($p->method);
+            $this->Cell(120, 6, $this->s("     > Encaissé par $lbl:"), 0, 0);
+            $this->Cell(70, 6, number_format($p->total, 0, ',', ' ') . " FCFA", 0, 1, 'R');
+        }
+        
         $this->SetTextColor(0);
 
         $this->Ln(4);
@@ -247,7 +260,7 @@ class AdministrativeReportService extends FPDF
         $this->SetFont('Arial', '', 11);
 
         $pillars = [
-            'cuisine' => 'Cuisine / Restaurant',
+            'kitchen' => 'Cuisine / Restaurant',
             'bar'     => 'Bar / Boissons',
             'pizza'   => 'Pizzeria',
             'gateaux' => 'Pâtisserie / Gâteaux'
