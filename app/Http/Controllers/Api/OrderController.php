@@ -109,6 +109,7 @@ class OrderController extends Controller
             'notes'          => 'nullable|string',
             'customer_name'  => 'nullable|string|max:150',
             'customer_phone' => 'nullable|string|max:20',
+            'server_name'    => 'nullable|string|max:150',
             'items'          => 'required|array|min:1',
             'items.*.product_id'   => 'nullable|exists:products,id',
             'items.*.custom_name'  => 'nullable|string|max:200',
@@ -131,6 +132,7 @@ class OrderController extends Controller
                 'notes'          => $request->notes,
                 'customer_name'  => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
+                'server_name'    => $request->server_name,
                 'status'         => 'open',
             ]);
 

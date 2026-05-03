@@ -16,7 +16,7 @@ class Order extends Model
     protected $fillable = [
         'restaurant_id', 'table_id', 'user_id', 'cashier_id',
         'order_number', 'type', 'status', 'covers',
-        'customer_name', 'customer_phone',
+        'customer_name', 'customer_phone', 'server_name',
         'subtotal', 'discount_amount', 'discount_reason',
         'vat_rate', 'vat_amount', 'total', 'notes',
         'sent_to_kitchen_at', 'served_at', 'paid_at',

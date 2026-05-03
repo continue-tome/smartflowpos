@@ -88,7 +88,7 @@ class TicketPrintService
                 'type' => $order->type, 
                 'type_label' => $this->typeLabel($order->type), 
                 'waiter' => $order->waiter?->full_name, 
-                'cashier' => $order->cashier?->full_name, 
+                'cashier' => $order->cashier?->full_name,
                 'notes' => $order->notes
             ],
             'lines' => $lines,
