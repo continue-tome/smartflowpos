@@ -346,7 +346,7 @@ class OrderController extends Controller
         $this->authorizeOrder($request, $order);
 
         $request->validate([
-            'items'                  => 'required|array|min:1',
+            'items'                  => 'nullable|array',
             'items.*.product_id'     => 'nullable|exists:products,id',
             'items.*.custom_name'    => 'nullable|string|max:200',
             'items.*.unit_price'     => 'nullable|numeric|min:0',
@@ -355,40 +355,49 @@ class OrderController extends Controller
             'items.*.course'         => 'integer|min:1',
             'items.*.modifier_ids'   => 'nullable|array',
             'items.*.modifier_ids.*' => 'exists:modifiers,id',
+            'notes'                  => 'nullable|string',
         ]);
 
         abort_if(in_array($order->status, ['paid', 'cancelled']), 422, 'Commande finalisée.');
 
         DB::transaction(function () use ($request, $order) {
-            foreach ($request->items as $itemData) {
-                $productId = $itemData['product_id'] ?? null;
-                $unitPrice = $itemData['unit_price'] ?? 0;
-                
-                if ($productId) {
-                    $product = Product::findOrFail($productId);
-                    $unitPrice = $product->price;
-                }
+            if ($request->items && is_array($request->items)) {
+                foreach ($request->items as $itemData) {
+                    $productId = $itemData['product_id'] ?? null;
+                    $unitPrice = $itemData['unit_price'] ?? 0;
+                    
+                    if ($productId) {
+                        $product = Product::findOrFail($productId);
+                        $unitPrice = $product->price;
+                    }
 
-                $item = $order->items()->create([
-                    'product_id' => $productId,
-                    'quantity'   => $itemData['quantity'],
-                    'unit_price' => $unitPrice,
-                    'subtotal'   => $unitPrice * $itemData['quantity'],
-                    'notes'      => $itemData['notes'] ?? $itemData['custom_name'] ?? null,
-                    'course'     => $itemData['course'] ?? 1,
-                    'status'     => 'pending',
-                ]);
+                    $item = $order->items()->create([
+                        'product_id' => $productId,
+                        'quantity'   => $itemData['quantity'],
+                        'unit_price' => $unitPrice,
+                        'subtotal'   => $unitPrice * $itemData['quantity'],
+                        'notes'      => $itemData['notes'] ?? $itemData['custom_name'] ?? null,
+                        'course'     => $itemData['course'] ?? 1,
+                        'status'     => 'pending',
+                    ]);
 
-                if (!empty($itemData['modifier_ids'])) {
-                    foreach ($itemData['modifier_ids'] as $modifierId) {
-                        $modifier = \App\Models\Modifier::find($modifierId);
-                        $item->modifiers()->create([
-                            'modifier_id' => $modifierId,
-                            'extra_price' => $modifier?->extra_price ?? 0,
-                        ]);
+                    if (!empty($itemData['modifier_ids'])) {
+                        foreach ($itemData['modifier_ids'] as $modifierId) {
+                            $modifier = \App\Models\Modifier::find($modifierId);
+                            $item->modifiers()->create([
+                                'modifier_id' => $modifierId,
+                                'extra_price' => $modifier?->extra_price ?? 0,
+                            ]);
+                        }
                     }
                 }
             }
+            if ($request->has('notes') && $request->notes) {
+                $order->update([
+                    'notes' => $order->notes ? $order->notes . ' | ' . $request->notes : $request->notes
+                ]);
+            }
+
             $order->recalculate();
 
             $order->logActivity('items_added', count($request->items) . " article(s) ajouté(s)");

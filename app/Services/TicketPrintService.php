@@ -155,6 +155,8 @@ class TicketPrintService
                 {$tableLabel}
             </div>
 
+            " . ($order->notes ? "<div style='border: 2px dashed #000; padding: 5px; text-align: center; font-size: 14px; font-weight: bold; margin: 5px 0;'>COMMENTAIRE: {$order->notes}</div>" : "") . "
+
             <table style='width: 100%; border-collapse: collapse;'>
                 " . $items->map(fn($item) => "
                 <tr style='border-bottom: 1px dashed #000;'>
